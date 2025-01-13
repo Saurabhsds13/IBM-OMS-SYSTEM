@@ -1,0 +1,32 @@
+package model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "vsp_inventory_demand")
+public class InventoryDemand {
+	
+	@Id
+	private Long inventoryDemandKey; // Unique identifier for the inventory demand
+    private Long inventoryItemKey; // Foreign Key to Inventory Item
+    private String itemId; // Identifier for the item
+    private String organizationCode; // Code representing the organization
+    private String tagNumber; // Tag number for tracking
+    private Double unitCost; // Cost per unit of the item
+    private Long shipNodeKey; // Key representing the shipping node
+    private Integer quantity; // Quantity requested in demand
+    private LocalDateTime demandShipDate; // Date when the demand is expected to ship
+    private LocalDateTime demandCancelDate; // Date when the demand was canceled
+    private String reference; // Additional reference information
+    private LocalDateTime createTs; // Creation Timestamp
+    private LocalDateTime modifyTs; // Modification Timestamp
+    private String createUserId; // Creator User ID
+    private String modifyUserId; // Modifier User ID
+    private String createProgId; // Creator Program ID
+    private String modifyProgId; // Modifier Program ID
+
+}

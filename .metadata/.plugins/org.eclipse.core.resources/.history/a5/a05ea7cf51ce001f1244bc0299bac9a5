@@ -1,0 +1,39 @@
+package model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "vsp_payment_details")
+public class Payment {
+
+	@Id
+	private int paymentID;
+	private int orderHeaderKey;
+	private String paymentType;
+	private int customerKey;
+	private String creditCardType;
+	private String creditCardName;
+	private String creditCardNo;
+	private long displayCreditCardNo;
+	private LocalDateTime creditCardExpiry;
+	private int svcNo;
+	private String debitCardNo;
+	private String displayDebitCardNo;
+	private String paymentReference1;
+	private String paymentReference2;
+	private Double totalAuthorized;
+	private Double totalCharged;
+	private Double requestedRefundAmount;
+	private Double totalRefundedAmount;
+	private Double totalAltRefundedAmount;
+	private LocalDateTime createTs;
+	private LocalDateTime modifyTs;
+	private String createUserId;
+	private String modifyUserId;
+	private String createProgId;
+	private String modifyProgId;
+}

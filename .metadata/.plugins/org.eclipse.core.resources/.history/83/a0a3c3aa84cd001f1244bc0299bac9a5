@@ -1,0 +1,28 @@
+package model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "vsp_inventory_sypply")
+public class InventorySupply {
+	private Long inventorySupplyKey; // Unique identifier for the inventory supply
+	private Long inventoryItemKey; // Foreign Key to Inventory Item
+	private String itemId; // Identifier for the item
+	private String organizationCode; // Code representing the organization
+	private String tagNumber; // Tag number for tracking
+	private Double unitCost; // Cost per unit of the item
+	private Long shipNodeKey; // Key representing the shipping node
+	private String supplyType; // Type of supply (e.g., standard, emergency)
+	private Integer quantity; // Quantity available in supply
+	private String availabilityType; // Type of availability (e.g., in stock, backordered)
+	private String reference; // Additional reference information
+	private LocalDateTime createTs; // Creation Timestamp
+	private LocalDateTime modifyTs; // Modification Timestamp
+	private String createUserId; // Creator User ID
+	private String modifyUserId; // Modifier User ID
+	private String createProgId; // Creator Program ID
+	private String modifyProgId; // Modifier Program ID
+}

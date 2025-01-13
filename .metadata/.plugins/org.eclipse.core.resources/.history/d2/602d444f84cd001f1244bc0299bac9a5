@@ -1,0 +1,47 @@
+package model;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "vsp_item_details")
+public class InventoryItemDetails {
+	 private String itemId;
+	    private Long fkInventoryItem; // Foreign Key to Inventory Item
+	    private Long fkOrganization; // Foreign Key to Organization
+	    private String shortDescription;
+	    private String description;
+	    private Double unitCost;
+	    private String manufacturerName;
+	    private String manufacturerItemDesc;
+	    private String countryOfOrigin;
+	    private Boolean isReturnable;
+	    private String organizationCode;
+	    private String itemType;
+	    private String uom; // Unit of Measure
+	    private String status;
+	    private Double unitWeight;
+	    private String unitWeightUom; // Unit of Measure for Weight
+	    private Double unitHeight;
+	    private String unitHeightUom; // Unit of Measure for Height
+	    private Double unitLength;
+	    private String unitLengthUom; // Unit of Measure for Length
+	    private Double unitWidth;
+	    private String unitWidthUom; // Unit of Measure for Width
+	    private Integer minOrderQuantity;
+	    private Integer maxOrderQuantity;
+	    private String storageType;
+	    private Integer onhandSafetyFactorQty;
+	    private Boolean isHazmat; // Indicates if the item is hazardous material
+	    private Boolean isFreezerRequired; // Indicates if the item requires freezer storage
+	    private Long imageId; // Reference to an image
+	    private String reference;
+	    private LocalDateTime createTs; // Creation Timestamp
+	    private LocalDateTime modifyTs; // Modification Timestamp
+	    private String createUserId; // Creator User ID
+	    private String modifyUserId; // Modifier User ID
+	    private String createProgId; // Creator Program ID
+	    private String modifyProgId; // Modifier Program ID
+}
