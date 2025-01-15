@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 public class Organization {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY	)
 	private Long organizationId;
 	private String organizationCode;
 	private Boolean isHubOrganization;
