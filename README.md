@@ -35,5 +35,5 @@ The **Order Management System (OMS)** is a scalable and enterprise-grade solutio
 ### Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/<your-org>/oms-system.git
-   cd oms-system
+   git clone https://github.com/Saurabhsds13/IBM-OMS-SYSTEM.git
+   cd IBM-OMS-SYSTEM
