@@ -26,13 +26,13 @@
 	</section>
 	<section name="Maven2ProjectWizardArchifactPage">
 		<list key="package">
-			<item value="org.notification"/>
+			<item value="org.security"/>
 		</list>
 		<list key="groupId">
 			<item value="com.dmart.oms"/>
 		</list>
 		<list key="artifactId">
-			<item value="notification"/>
+			<item value="security"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -49,15 +49,23 @@
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
 			<item value="com.dmart.oms"/>
-			<item value="com.dmart"/>
 		</list>
 		<list key="name">
+			<item value="security"/>
 			<item value="notification"/>
+			<item value="order"/>
+			<item value="inventory"/>
+			<item value="customer"/>
+			<item value="common"/>
 		</list>
 		<list key="artifactId">
-			<item value="notification"/>
+			<item value="security"/>
 			<item value="ORDER-MANAGEMENT-SYSTEM"/>
+			<item value="notification"/>
 			<item value="order"/>
+			<item value="inventory"/>
+			<item value="customer"/>
+			<item value="common"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -85,11 +93,11 @@
 	</section>
 	<section name="MavenModuleWizardParentPage">
 		<list key="moduleName">
+			<item value="security"/>
 			<item value="notification"/>
 			<item value="order"/>
 			<item value="inventory"/>
 			<item value="customer"/>
-			<item value="security"/>
 			<item value="common"/>
 			<item value="OMS-Inventory"/>
 			<item value="OMS-Order"/>

@@ -7,8 +7,14 @@
 		<artifactId>ORDER-MANAGEMENT-SYSTEM</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>com.dmart.common</groupId>
 	<artifactId>common</artifactId>
 	<name>common</name>
-	<description>common module for OMS</description>
+	<description>Common Module For OMS System</description>
+	<dependencies>
+		<dependency>
+			<groupId>com.dmart.oms</groupId>
+			<artifactId>ORDER-MANAGEMENT-SYSTEM</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 </project>

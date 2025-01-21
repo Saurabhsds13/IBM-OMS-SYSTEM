@@ -7,5 +7,5 @@
   </parent>
   <artifactId>notification</artifactId>
   <name>notification</name>
-  <description>This is notification module for OMS System</description>
+  <description>Notification Module for OMS System</description>
 </project>
