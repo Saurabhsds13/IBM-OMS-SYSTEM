@@ -18,9 +18,9 @@ The **Order Management System (OMS)** is a scalable and enterprise-grade solutio
 
 ## Architecture
 ### System Architecture
+
 ![System Architecture](https://github.com/user-attachments/assets/79badabc-240f-4d4d-b326-5ca1551ae95c)
 
-![System Architecture](Docs/System-Architecture.png)
 
 ### Database Schema
 ![Database Schema](docs/database-schema.png)
