@@ -23,7 +23,8 @@ The **Order Management System (OMS)** is a scalable and enterprise-grade solutio
 
 
 ### Database Schema
-![ERD](https://github.com/user-attachments/assets/e4ef530f-4b92-470b-ba55-c26c293ff5be)
+![ERD](https://github.com/user-attachments/assets/f7b86746-e6c2-4587-a537-48af04c442d5)
+
 
 
 ---
