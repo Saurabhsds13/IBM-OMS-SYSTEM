@@ -2,7 +2,7 @@
 <libraryInfos>
     <libraryInfo home="D:\Softwares\sts-4.21.0.RELEASE\plugins\org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_17.0.9.v20231028-0858" version="17.0.9"/>
     <libraryInfo home="D:\Softwares\sts-4.21.0.RELEASE\plugins\org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_17.0.9.v20231028-0858\jre" version="17.0.9"/>
-    <libraryInfo home="C:\Program Files\Java\jdk-1.8" version="1.8.0_431">
+    <libraryInfo home="C:\Program Files\Java\jdk-1.8" version="1.8.0_441">
         <bootpath>
             <entry path="C:\Program Files\Java\jdk-1.8\jre\lib\resources.jar"/>
             <entry path="C:\Program Files\Java\jdk-1.8\jre\lib\rt.jar"/>

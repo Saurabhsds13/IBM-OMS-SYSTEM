@@ -26,13 +26,13 @@
 	</section>
 	<section name="Maven2ProjectWizardArchifactPage">
 		<list key="package">
-			<item value="org.security"/>
+			<item value="org.customer.service"/>
 		</list>
 		<list key="groupId">
 			<item value="com.dmart.oms"/>
 		</list>
 		<list key="artifactId">
-			<item value="security"/>
+			<item value="customer-service"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -48,24 +48,24 @@
 	</section>
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
+			<item value="com.dmart.oms.customer"/>
 			<item value="com.dmart.oms"/>
+			<item value="com.dmart.oms.order"/>
+			<item value="com.dmart"/>
 		</list>
 		<list key="name">
-			<item value="security"/>
-			<item value="notification"/>
-			<item value="order"/>
-			<item value="inventory"/>
-			<item value="customer"/>
-			<item value="common"/>
+			<item value="customer-service"/>
+			<item value="order-service"/>
+			<item value="Order-Management-System"/>
+			<item value="Order Management System"/>
 		</list>
 		<list key="artifactId">
-			<item value="security"/>
-			<item value="ORDER-MANAGEMENT-SYSTEM"/>
-			<item value="notification"/>
+			<item value="customer-service"/>
+			<item value="Order-Management-System"/>
 			<item value="order"/>
-			<item value="inventory"/>
 			<item value="customer"/>
-			<item value="common"/>
+			<item value="ORDER-MANAGEMENT-SYSTEM"/>
+			<item value="Customer"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -93,11 +93,14 @@
 	</section>
 	<section name="MavenModuleWizardParentPage">
 		<list key="moduleName">
+			<item value="customer-service"/>
+			<item value="order"/>
+			<item value="customer"/>
+			<item value="Customer"/>
+			<item value="abc"/>
 			<item value="security"/>
 			<item value="notification"/>
-			<item value="order"/>
 			<item value="inventory"/>
-			<item value="customer"/>
 			<item value="common"/>
 			<item value="OMS-Inventory"/>
 			<item value="OMS-Order"/>
@@ -117,5 +120,11 @@
 		<item key="height" value="838"/>
 		<item key="x" value="720"/>
 		<item key="y" value="0"/>
+	</section>
+	<section name="org.eclipse.m2e.core.ui.internal.wizards.MavenProjectSelectionDialog">
+		<item key="width" value="480"/>
+		<item key="height" value="450"/>
+		<item key="x" value="720"/>
+		<item key="y" value="271"/>
 	</section>
 </section>
