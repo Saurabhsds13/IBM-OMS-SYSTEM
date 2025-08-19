@@ -2,19 +2,18 @@
 <section name="Workbench">
 	<section name="MavenProjectWizardLocationPage">
 		<list key="location">
-			<item value="C:\Users\saurabh.sonawane\Desktop\OMS\ORDER-MANAGEMENT-SYSTEM"/>
-			<item value="C:\Users\saurabh.sonawane\Desktop\OMS\ORDER-MANAGEMENT-SYSTEM\src\main\java"/>
 		</list>
 		<list key="projectNameTemplate">
-			<item value="[name]"/>
 			<item value="[artifactId]"/>
 			<item value="[artifactId]-TRUNK"/>
 			<item value="[artifactId]-[version]"/>
 			<item value="[groupId].[artifactId]"/>
 			<item value="[groupId].[artifactId]-[version]"/>
+			<item value="[name]"/>
 		</list>
 	</section>
 	<section name="MavenProjectWizardArchetypePage">
+		<item key="catalog" value="All Catalogs"/>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
 			<item value="[artifactId]-TRUNK"/>
@@ -26,13 +25,13 @@
 	</section>
 	<section name="Maven2ProjectWizardArchifactPage">
 		<list key="package">
-			<item value="org.customer.service"/>
+			<item value="org.shared.library"/>
 		</list>
 		<list key="groupId">
 			<item value="com.dmart.oms"/>
 		</list>
 		<list key="artifactId">
-			<item value="customer-service"/>
+			<item value="shared-library"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -48,24 +47,26 @@
 	</section>
 	<section name="MavenProjectWizardArtifactPage">
 		<list key="groupId">
-			<item value="com.dmart.oms.customer"/>
 			<item value="com.dmart.oms"/>
-			<item value="com.dmart.oms.order"/>
 			<item value="com.dmart"/>
 		</list>
 		<list key="name">
-			<item value="customer-service"/>
-			<item value="order-service"/>
-			<item value="Order-Management-System"/>
-			<item value="Order Management System"/>
+			<item value="Shared Libraries"/>
+			<item value="Api-Gateway"/>
+			<item value="OMS-Order-Service"/>
+			<item value="OMS-SYSTEM for DmartReady"/>
+			<item value="Inventory-Module"/>
+			<item value="Order-Module"/>
+			<item value="OMS-Modular Architecher"/>
+			<item value="OMS-Modular Architecture System"/>
 		</list>
 		<list key="artifactId">
-			<item value="customer-service"/>
+			<item value="shared-library"/>
 			<item value="Order-Management-System"/>
+			<item value="api-gateway"/>
+			<item value="order-service"/>
+			<item value="Inventory"/>
 			<item value="order"/>
-			<item value="customer"/>
-			<item value="ORDER-MANAGEMENT-SYSTEM"/>
-			<item value="Customer"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -80,31 +81,16 @@
 		</list>
 	</section>
 	<section name="org.eclipse.m2e.core.pom.overview">
-		<list key="ciManagementUrl">
-		</list>
-		<list key="ciManagementSystem">
-		</list>
-		<list key="issueManagementSystem">
-		</list>
-		<list key="issueManagementUrl">
-		</list>
 	</section>
 	<section name="org.eclipse.m2e.core.pom.dependencies">
 	</section>
 	<section name="MavenModuleWizardParentPage">
 		<list key="moduleName">
-			<item value="customer-service"/>
+			<item value="shared-library"/>
+			<item value="api-gateway"/>
+			<item value="order-service"/>
+			<item value="Inventory"/>
 			<item value="order"/>
-			<item value="customer"/>
-			<item value="Customer"/>
-			<item value="abc"/>
-			<item value="security"/>
-			<item value="notification"/>
-			<item value="inventory"/>
-			<item value="common"/>
-			<item value="OMS-Inventory"/>
-			<item value="OMS-Order"/>
-			<item value="OMS-Customer"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>
@@ -114,17 +100,5 @@
 			<item value="[groupId].[artifactId]-[version]"/>
 			<item value="[name]"/>
 		</list>
-	</section>
-	<section name="org.eclipse.m2e.core.ui.internal.dialogs.MavenRepositorySearchDialog">
-		<item key="width" value="480"/>
-		<item key="height" value="838"/>
-		<item key="x" value="720"/>
-		<item key="y" value="0"/>
-	</section>
-	<section name="org.eclipse.m2e.core.ui.internal.wizards.MavenProjectSelectionDialog">
-		<item key="width" value="480"/>
-		<item key="height" value="450"/>
-		<item key="x" value="720"/>
-		<item key="y" value="271"/>
 	</section>
 </section>

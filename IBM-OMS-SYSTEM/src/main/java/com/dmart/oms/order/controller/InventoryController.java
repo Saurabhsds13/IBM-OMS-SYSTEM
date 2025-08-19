@@ -1,0 +1,39 @@
+package com.dmart.oms.order.controller;
+
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.dmart.oms.Inventory.model.Inventory;
+import com.dmart.oms.order.service.InventoryService;
+
+@RestController
+@RequestMapping("/api/admin/inventory")
+public class InventoryController {
+
+	private final InventoryService service;
+
+	public InventoryController(InventoryService service) {
+		this.service = service;
+	}
+
+	@GetMapping
+	public List<Inventory> getAllStock() {
+		return service.getAllStock();
+	}
+
+	@PostMapping("/reserve")
+	public Inventory reserveStock(@RequestParam String productCode, @RequestParam int qty) {
+		return service.reserveStock(productCode, qty);
+	}
+
+	@PostMapping
+	public Inventory addStock(@RequestBody Inventory inventory) {
+		return service.addStock(inventory);
+	}
+}

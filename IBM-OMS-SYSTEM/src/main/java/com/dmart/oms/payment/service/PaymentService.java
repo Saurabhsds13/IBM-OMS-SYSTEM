@@ -1,0 +1,65 @@
+package com.dmart.oms.payment.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import com.dmart.oms.payment.model.Payment;
+import com.dmart.oms.payment.repository.PaymentRepository;
+
+@Service
+public class PaymentService {
+	private final PaymentRepository repo;
+
+	public PaymentService(PaymentRepository repo) {
+		this.repo = repo;
+	}
+
+	public Payment initiatePayment(String orderNumber, double amount) {
+		Payment payment = new Payment();
+		payment.setOrderNumber(orderNumber);
+		payment.setAmount(amount);
+		payment.setStatus("PENDING");
+		payment.setCreatedAt(LocalDateTime.now());
+		return repo.save(payment);
+	}
+
+	public Payment markSuccess(Long id) {
+		Payment payment = repo.findById(id).orElseThrow();
+		payment.setStatus("SUCCESS");
+		return repo.save(payment);
+	}
+
+	public Payment markFailed(Long id) {
+		Payment payment = repo.findById(id).orElseThrow();
+		payment.setStatus("FAILED");
+		return repo.save(payment);
+	}
+
+	public Payment refund(Long id) {
+		Payment payment = repo.findById(id).orElseThrow();
+		if ("SUCCESS".equals(payment.getStatus())) {
+			payment.setStatus("REFUNDED");
+		}
+		return repo.save(payment);
+	}
+
+	// Automatic retry for failed payments
+	@Scheduled(fixedRate = 30000) // every 30 sec
+	public void retryFailedPayments() {
+		List<Payment> failedPayments = repo.findAll().stream()
+				.filter(p -> "FAILED".equals(p.getStatus()) && p.getRetryCount() < 3).toList();
+
+		for (Payment p : failedPayments) {
+			p.setRetryCount(p.getRetryCount() + 1);
+			if (Math.random() > 0.5) { // simulate success on retry
+				p.setStatus("SUCCESS");
+			} else if (p.getRetryCount() >= 3) {
+				p.setStatus("DEAD_LETTER");
+			}
+			repo.save(p);
+		}
+	}
+}

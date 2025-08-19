@@ -1,0 +1,8 @@
+package com.dmart.oms.common.event;
+
+public interface OutboxPublisher {
+
+	boolean canHandle(String aggregateType, String eventType);
+
+	void publish(String aggregateType, String aggregateId, String eventType, Object payload) throws Exception;
+}
