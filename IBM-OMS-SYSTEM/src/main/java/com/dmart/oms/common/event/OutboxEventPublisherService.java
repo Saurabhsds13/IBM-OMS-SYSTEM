@@ -1,6 +1,6 @@
 package com.dmart.oms.common.event;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +32,7 @@ public class OutboxEventPublisherService implements OutboxEventPublisher {
 			ev.setEventType(eventType);
 			ev.setPayload(json);
 			ev.setStatus("PENDING");
-			ev.setCreatedAt(LocalDateTime.now());
+			ev.setCreatedAt(Instant.now());
 
 			outboxRepo.save(ev);
 

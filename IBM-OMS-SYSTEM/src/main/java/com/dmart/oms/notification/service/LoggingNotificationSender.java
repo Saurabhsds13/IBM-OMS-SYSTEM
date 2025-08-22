@@ -10,9 +10,9 @@ public class LoggingNotificationSender implements NotificationSender {
 	private static final Logger log = LoggerFactory.getLogger(LoggingNotificationSender.class);
 
 	@Override
-	public void send(String eventType,	 String payload, Long eventId) throws Exception {
+	public void send(String eventType, String payload, Long eventId) throws Exception {
 
-		// Simulate outbound delivery
+		// Simulate out-bound delivery
 		log.info("[OUTBOX] Dispatching eventId={} type={} payload={}", eventId, eventType, payload);
 
 		// Simulate transient error for demo

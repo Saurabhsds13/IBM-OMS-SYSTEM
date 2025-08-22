@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import com.dmart.oms.analytics.model.DailySalesAgg;
 
 //analytics/repository/DailySalesAggRepository.java
+@Repository
 public interface DailySalesAggRepository extends JpaRepository<DailySalesAgg, Long> {
 
 	List<DailySalesAgg> findByDateBetween(LocalDate from, LocalDate to);

@@ -1,0 +1,59 @@
+package com.dmart.oms.common.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.time.Instant;
+import java.util.List;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ErrorResponse {
+
+	private boolean success = false; // always false for errors
+	private String message; // human-readable error message
+	private String errorCode; // domain-specific error code (INV_001, ORD_002…)
+	private int status; // HTTP status code
+	private Instant timestamp; // when the error occurred
+	private String path; // request path (useful for debugging)
+	private List<String> details; // optional: validation field errors or extra info
+
+	private ErrorResponse(String message, String errorCode, int status, String path, List<String> details) {
+		this.message = message;
+		this.errorCode = errorCode;
+		this.status = status;
+		this.timestamp = Instant.now();
+		this.path = path;
+		this.details = details;
+	}
+
+	public static ErrorResponse of(String message, String errorCode, int status, String path, List<String> details) {
+		return new ErrorResponse(message, errorCode, status, path, details);
+	}
+
+	public boolean isSuccess() {
+		return success;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public Instant getTimestamp() {
+		return timestamp;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public List<String> getDetails() {
+		return details;
+	}
+}

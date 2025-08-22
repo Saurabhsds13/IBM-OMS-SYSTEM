@@ -1,6 +1,6 @@
 package com.dmart.oms.common.event;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +22,7 @@ public class OutboxDispatcher {
 	}
 
 	// Run every 10 seconds (tune as needed)
-	@Scheduled(fixedRate = 300000)
+	@Scheduled(fixedRate = 300000000)
 	@Transactional
 	public void dispatchEvents() {
 		List<OutboxEvent> events = outboxRepo.findTop10ByStatusOrderByCreatedAtAsc("PENDING");
@@ -54,7 +54,7 @@ public class OutboxDispatcher {
 		} else {
 			ev.setStatus("PENDING");
 		}
-		ev.setLastAttemptAt(LocalDateTime.now());
+		ev.setLastAttemptAt(Instant.now());
 		outboxRepo.save(ev);
 	}
 }

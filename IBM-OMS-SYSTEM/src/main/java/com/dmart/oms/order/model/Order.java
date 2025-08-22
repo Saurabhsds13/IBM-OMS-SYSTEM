@@ -1,8 +1,15 @@
 package com.dmart.oms.order.model;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "orders")
@@ -13,7 +20,7 @@ public class Order {
 
 	private String orderNumber;
 	private String status; // PENDING, APPROVED, PARTIALLY_SHIPPED, CANCELLED
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
 	private List<OrderItem> items;
@@ -42,11 +49,11 @@ public class Order {
 		this.status = status;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 
@@ -58,7 +65,7 @@ public class Order {
 		this.items = items;
 	}
 
-	public Order(Long id, String orderNumber, String status, LocalDateTime createdAt, List<OrderItem> items) {
+	public Order(Long id, String orderNumber, String status, Instant createdAt, List<OrderItem> items) {
 		super();
 		this.id = id;
 		this.orderNumber = orderNumber;

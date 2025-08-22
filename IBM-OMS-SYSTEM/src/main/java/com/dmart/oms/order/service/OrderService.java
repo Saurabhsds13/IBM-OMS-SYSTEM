@@ -1,15 +1,20 @@
 package com.dmart.oms.order.service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.dmart.oms.common.event.OutboxEventPublisher;
+import com.dmart.oms.common.exception.BusinessException;
+import com.dmart.oms.common.exception.ErrorCode;
 import com.dmart.oms.common.model.OutboxEvent;
 import com.dmart.oms.common.repository.OutboxRepository;
 import com.dmart.oms.common.utils.JsonUtils;
+import com.dmart.oms.common.utils.OrderMapper;
+import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.model.Order;
 import com.dmart.oms.order.repository.OrderRepository;
 
@@ -27,12 +32,12 @@ public class OrderService {
 		this.publisher = publisher;
 	}
 
-	public List<Order> getAllOrders() {
-		return repo.findAll();
+	public List<OrderDTO> getAllOrders() {
+		return repo.findAll().stream().map(OrderMapper::toDTO).toList();
 	}
 
 	@Transactional
-	public Order approveOrder(Long id) {
+	public OrderDTO approveOrder(Long id) {
 
 		Order order = repo.findById(id).orElseThrow();
 
@@ -46,27 +51,37 @@ public class OrderService {
 		ev.setEventType("ORDER_APPROVED");
 		ev.setPayload(JsonUtils.toJson(order));
 		ev.setStatus("PENDING");
-		ev.setCreatedAt(LocalDateTime.now());
+		ev.setCreatedAt(Instant.now());
 		outboxRepository.save(ev);
 
 		// 🚀 Publish event without boilerplate
 		publisher.publish("ORDER", order.getOrderNumber(), "ORDER_APPROVED",
 				new OutboxEvent(id, order.getOrderNumber(), null, null, null, null, 0, null, null));
 
-		return order; // <-- only 1 return at the end
+		return OrderMapper.toDTO(order);
 	}
 
-	public Order cancelOrder(Long id) {
-		Order order = repo.findById(id).orElseThrow();
+	public OrderDTO cancelOrder(Long id) {
+		Order order = repo.findById(id)
+				.orElseThrow(() -> new BusinessException("Order not found with id=" + id, ErrorCode.ORD_001));
+
 		order.setStatus("CANCELLED");
-		return repo.save(order);
+		Order savedOrder = repo.save(order);
+
+		return OrderMapper.toDTO(savedOrder); // ✅ Convert entity → DTO
+	}
+
+	public Optional<OrderDTO> getOrderById(Long id) {
+		return repo.findById(id).map(OrderMapper::toDTO);
 	}
 
 	// Unique feature: Partial shipment
-	public Order shipPartially(Long id, int quantity) {
+	public OrderDTO shipPartially(Long id, int quantity) {
 		Order order = repo.findById(id).orElseThrow();
 		order.setStatus("PARTIALLY_SHIPPED");
 		// logic to adjust shipped quantities
-		return repo.save(order);
+		Order savedOrder = repo.save(order);
+
+		return OrderMapper.toDTO(savedOrder);
 	}
 }

@@ -1,6 +1,6 @@
 package com.dmart.oms.common.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,8 +25,8 @@ public class OutboxEvent {
 	private String payload; // JSON payload
 	private String status; // PENDING, SENDING, SENT, DEAD_LETTER
 	private int attemptCount = 0;
-	private LocalDateTime createdAt;
-	private LocalDateTime lastAttemptAt;
+	private Instant createdAt;
+	private Instant lastAttemptAt;
 
 	public Long getId() {
 		return id;
@@ -84,24 +84,24 @@ public class OutboxEvent {
 		this.attemptCount = attemptCount;
 	}
 
-	public LocalDateTime getCreatedAt() {
+	public Instant getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
 	}
 
-	public LocalDateTime getLastAttemptAt() {
+	public Instant getLastAttemptAt() {
 		return lastAttemptAt;
 	}
 
-	public void setLastAttemptAt(LocalDateTime lastAttemptAt) {
+	public void setLastAttemptAt(Instant lastAttemptAt) {
 		this.lastAttemptAt = lastAttemptAt;
 	}
 
 	public OutboxEvent(Long id, String aggregateType, String aggregateId, String eventType, String payload,
-			String status, int attemptCount, LocalDateTime createdAt, LocalDateTime lastAttemptAt) {
+			String status, int attemptCount, Instant createdAt, Instant lastAttemptAt) {
 		super();
 		this.id = id;
 		this.aggregateType = aggregateType;

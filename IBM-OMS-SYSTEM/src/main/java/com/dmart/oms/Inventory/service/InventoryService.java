@@ -1,4 +1,4 @@
-package com.dmart.oms.order.service;
+package com.dmart.oms.Inventory.service;
 
 import java.util.List;
 
