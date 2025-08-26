@@ -1,0 +1,109 @@
+[33mcommit da4d272a11655a65a240640037aa2e4d79df7b89[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Fri Aug 22 18:20:31 2025 +0530
+
+    created all the required services and controllers
+
+[33mcommit 8e636c26c0a244ae1509c6dba1ccc78a81510aa3[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Tue Aug 19 17:22:18 2025 +0530
+
+    Created Modular Monolith architecture with all required modules
+
+[33mcommit 0cac8bd7f05b42a17c1e0cb753480c1fc4807ba2[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Wed Apr 30 16:32:03 2025 +0530
+
+    ERD Updated
+
+[33mcommit ca10822316cef85fef59f6e55d5454644d33060e[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Wed Apr 30 16:28:18 2025 +0530
+
+    Update README.md
+
+[33mcommit 9d5291fddfc4d411d23f6658a0276039fa6842f1[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Wed Apr 30 16:26:19 2025 +0530
+
+    Update README.md ER DIAGRAM
+
+[33mcommit fafb9759f16de9b272091fc6010962bddc1b7b59[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Wed Apr 30 16:19:56 2025 +0530
+
+    Update README.md
+
+[33mcommit 9d4e5fc82dd9a5be48b147e606c050919ecfc418[m
+Merge: 424718a d0d44b5
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Wed Apr 30 15:40:08 2025 +0530
+
+    deleting the old structure
+
+[33mcommit 424718a545db7009a6eaf529961df457f2195005[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Wed Apr 30 15:37:06 2025 +0530
+
+    Old Sturcure Deleted
+
+[33mcommit d0d44b56bf9ce29c87f502ec58e2b43ed477b4b1[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Tue Jan 21 19:02:14 2025 +0530
+
+    Update README.md
+
+[33mcommit 93a8adcd31b9ee3cbce189c2903b5f0ed57990d1[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Tue Jan 21 19:01:55 2025 +0530
+
+    Update README.md
+
+[33mcommit 374230beaa44530d22558be7a35c529fe6cca6d0[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Tue Jan 21 19:01:04 2025 +0530
+
+    Update README.md
+
+[33mcommit b97045baf247daba99379eeeed09ef47d659ab50[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Tue Jan 21 19:00:12 2025 +0530
+
+    Update README.md
+
+[33mcommit 749501af4779ab6aac6e13212ea463ff5b949805[m
+Merge: 6d8107e 92dc65a
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Tue Jan 21 18:52:37 2025 +0530
+
+    Merge branch 'master' of https://github.com/Saurabhsds13/IBM-OMS-SYSTEM
+
+[33mcommit 6d8107e3f3455f715077b33815db50a8737c1ffb[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Tue Jan 21 18:52:10 2025 +0530
+
+    project structure change
+
+[33mcommit 92dc65a20303c3bf6cedd6970d81dc2a44fcc607[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Wed Jan 15 15:42:02 2025 +0530
+
+    Update README.md
+
+[33mcommit 40afcaebc29048805f3da059ef707463672093a5[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Wed Jan 15 11:11:29 2025 +0530
+
+    adding Docs
+
+[33mcommit 3d788e420974f2e8e2d39107a806c212d63f4078[m
+Author: Saurabhsds13 <saurabhsds13@gmail.com>
+Date:   Mon Jan 13 16:45:41 2025 +0530
+
+    initial setup
+
+[33mcommit bfadd8197aab1b2fcedd920c01109ad24f1085b2[m
+Author: Saurabh Sonawane <114797797+Saurabhsds13@users.noreply.github.com>
+Date:   Mon Jan 13 15:36:11 2025 +0530
+
+    Create README.md

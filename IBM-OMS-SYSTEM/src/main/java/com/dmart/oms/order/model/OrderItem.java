@@ -18,7 +18,7 @@ public class OrderItem {
 
 	private String productCode;
 	private int quantity;
-	private int shippedQuantity = 0;
+	private int shippedQuantity;
 
 	@ManyToOne
 	@JoinColumn(name = "order_id")

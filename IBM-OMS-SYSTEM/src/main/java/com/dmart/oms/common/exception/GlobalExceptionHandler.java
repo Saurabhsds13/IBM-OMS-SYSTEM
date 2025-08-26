@@ -23,9 +23,22 @@ public class GlobalExceptionHandler {
 		// Customize status mapping
 		if (ex.getErrorCode() == ErrorCode.ORD_001) {
 			status = HttpStatus.NOT_FOUND;
+
+		} else if (ex.getErrorCode() == ErrorCode.ORD_002) {
+			status = HttpStatus.ALREADY_REPORTED;
 		}
 
 		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), ex.getErrorCode().name(),
+				status.value(), request.getRequestURI(), null));
+	}
+
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorResponse> handleBusinessException(ResourceNotFoundException ex,
+			HttpServletRequest request) {
+
+		HttpStatus status = HttpStatus.NOT_FOUND;
+
+		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), HttpStatus.NOT_FOUND.toString(),
 				status.value(), request.getRequestURI(), null));
 	}
 

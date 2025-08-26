@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.dmart.oms.common.event.OutboxEventPublisher;
 import com.dmart.oms.common.exception.BusinessException;
 import com.dmart.oms.common.exception.ErrorCode;
+import com.dmart.oms.common.exception.ResourceNotFoundException;
 import com.dmart.oms.common.model.OutboxEvent;
 import com.dmart.oms.common.repository.OutboxRepository;
 import com.dmart.oms.common.utils.JsonUtils;
@@ -39,26 +40,31 @@ public class OrderService {
 	@Transactional
 	public OrderDTO approveOrder(Long id) {
 
-		Order order = repo.findById(id).orElseThrow();
+		Order order = repo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id=" + id));
+
+		if (order.getStatus().equals("APPROVED")) {
+			throw new BusinessException("Order is already approved", ErrorCode.ORD_002);
+		}
 
 		order.setStatus("APPROVED");
 		repo.save(order);
+
+		OrderDTO dto = OrderMapper.toDTO(order);
 
 		// ✅ Build and save OutboxEvent BEFORE returning
 		OutboxEvent ev = new OutboxEvent();
 		ev.setAggregateType("ORDER");
 		ev.setAggregateId(order.getOrderNumber());
 		ev.setEventType("ORDER_APPROVED");
-		ev.setPayload(JsonUtils.toJson(order));
+		ev.setPayload(JsonUtils.toJson(dto));
 		ev.setStatus("PENDING");
 		ev.setCreatedAt(Instant.now());
 		outboxRepository.save(ev);
 
 		// 🚀 Publish event without boilerplate
-		publisher.publish("ORDER", order.getOrderNumber(), "ORDER_APPROVED",
-				new OutboxEvent(id, order.getOrderNumber(), null, null, null, null, 0, null, null));
-
-		return OrderMapper.toDTO(order);
+		publisher.publish("ORDER", order.getOrderNumber(), "ORDER_APPROVED", dto);
+		return dto;
 	}
 
 	public OrderDTO cancelOrder(Long id) {
