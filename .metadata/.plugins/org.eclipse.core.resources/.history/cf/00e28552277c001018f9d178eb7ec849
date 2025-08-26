@@ -1,0 +1,51 @@
+package com.dmart.oms.notification.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.oms.notification.model.OutboxEvent;
+
+//notification/service/OutboxDispatcher.java
+@Service
+@EnableScheduling
+public class OutboxDispatcher {
+	private final OutboxRepository outboxRepo;
+	private final NotificationSender sender; // abstraction to send email/webhook
+
+	public OutboxDispatcher(OutboxRepository outboxRepo, NotificationSender sender) {
+		this.outboxRepo = outboxRepo;
+		this.sender = sender;
+	}
+
+	@Scheduled(fixedRate = 15000) // every 15s
+	@Transactional
+	public void dispatchPending() {
+		List<OutboxEvent> batch = outboxRepo.findTop100ByStatusOrderByCreatedAt("PENDING");
+		for (OutboxEvent e : batch) {
+			try {
+				e.setStatus("SENDING");
+				e.setAttemptCount(e.getAttemptCount() + 1);
+				e.setLastAttemptAt(LocalDateTime.now());
+				outboxRepo.save(e);
+
+				// send (idempotent by design: sender must dedupe using event id)
+				sender.send(e.getEventType(), e.getPayload(), e.getId());
+
+				e.setStatus("SENT");
+				outboxRepo.save(e);
+			} catch (Exception ex) {
+				if (e.getAttemptCount() >= 5) {
+					e.setStatus("DEAD_LETTER");
+				} else {
+					e.setStatus("PENDING"); // will retry
+				}
+				outboxRepo.save(e);
+			}
+		}
+	}
+}

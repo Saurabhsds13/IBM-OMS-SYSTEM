@@ -1,0 +1,72 @@
+package com.dmart.oms.order.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.oms.common.event.OutboxPublisherService;
+import com.dmart.oms.common.utils.JsonUtils;
+import com.dmart.oms.notification.model.OutboxEvent;
+import com.dmart.oms.notification.repository.OutboxRepository;
+import com.dmart.oms.order.model.Order;
+import com.dmart.oms.order.repository.OrderRepository;
+
+@Service
+public class OrderService {
+
+	private final OrderRepository repo;
+	private final OutboxRepository outboxRepository;
+	private final OutboxPublisherService publisher;
+
+	public OrderService(OrderRepository repo, OutboxRepository outboxRepository, OutboxPublisherService publisher) {
+		super();
+		this.repo = repo;
+		this.outboxRepository = outboxRepository;
+		this.publisher = publisher;
+	}
+
+	public List<Order> getAllOrders() {
+		return repo.findAll();
+	}
+
+	@Transactional
+	public Order approveOrder(Long id) {
+
+		Order order = repo.findById(id).orElseThrow();
+
+		order.setStatus("APPROVED");
+		repo.save(order);
+
+		// ✅ Build and save OutboxEvent BEFORE returning
+		OutboxEvent ev = new OutboxEvent();
+		ev.setAggregateType("ORDER");
+		ev.setAggregateId(order.getOrderNumber());
+		ev.setEventType("ORDER_APPROVED");
+		ev.setPayload(JsonUtils.toJson(order));
+		ev.setStatus("PENDING");
+		ev.setCreatedAt(LocalDateTime.now());
+		outboxRepository.save(ev);
+
+		// 🚀 Publish event without boilerplate
+		publisher.publish("ORDER", order.getOrderNumber(), "ORDER_APPROVED",
+				new OrderApprovedPayload(order.getOrderNumber()));
+
+		return order; // <-- only 1 return at the end
+	}
+
+	public Order cancelOrder(Long id) {
+		Order order = repo.findById(id).orElseThrow();
+		order.setStatus("CANCELLED");
+		return repo.save(order);
+	}
+
+	// Unique feature: Partial shipment
+	public Order shipPartially(Long id, int quantity) {
+		Order order = repo.findById(id).orElseThrow();
+		order.setStatus("PARTIALLY_SHIPPED");
+		// logic to adjust shipped quantities
+		return repo.save(order);
+	}
+}

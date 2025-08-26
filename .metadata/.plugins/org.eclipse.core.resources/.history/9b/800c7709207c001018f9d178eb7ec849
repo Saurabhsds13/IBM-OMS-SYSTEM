@@ -1,0 +1,5 @@
+package com.dmart.oms.order.model;
+
+public class OrderItem {
+
+}

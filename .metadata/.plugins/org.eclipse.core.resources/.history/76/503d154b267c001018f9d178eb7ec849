@@ -1,0 +1,42 @@
+package com.dmart.oms.analytics.dto;
+//analytics/dto/KpiSnapshot.java
+public class KpiSnapshot {
+private double totalRevenue;
+private long totalOrders;
+private double averageOrderValue;
+private long cancellations;
+private long backorders;
+public double getTotalRevenue() {
+	return totalRevenue;
+}
+public void setTotalRevenue(double totalRevenue) {
+	this.totalRevenue = totalRevenue;
+}
+public long getTotalOrders() {
+	return totalOrders;
+}
+public void setTotalOrders(long totalOrders) {
+	this.totalOrders = totalOrders;
+}
+public double getAverageOrderValue() {
+	return averageOrderValue;
+}
+public void setAverageOrderValue(double averageOrderValue) {
+	this.averageOrderValue = averageOrderValue;
+}
+public long getCancellations() {
+	return cancellations;
+}
+public void setCancellations(long cancellations) {
+	this.cancellations = cancellations;
+}
+public long getBackorders() {
+	return backorders;
+}
+public void setBackorders(long backorders) {
+	this.backorders = backorders;
+}
+
+// getters + setters
+}
+

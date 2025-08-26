@@ -1,0 +1,5 @@
+package com.dmart.oms.common.dto;
+
+public class ErrorResponse {
+
+}

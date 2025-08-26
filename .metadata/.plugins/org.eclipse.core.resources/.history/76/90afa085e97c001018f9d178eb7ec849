@@ -1,0 +1,5 @@
+package com.dmart.oms.common.event;
+
+public interface OutboxEventPublisher {
+
+}

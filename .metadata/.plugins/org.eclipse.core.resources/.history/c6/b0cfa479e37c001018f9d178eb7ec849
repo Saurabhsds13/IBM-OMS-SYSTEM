@@ -1,0 +1,69 @@
+package com.dmart.oms.analytics.controller;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.dmart.oms.analytics.dto.KpiResponse;
+import com.dmart.oms.analytics.dto.TimeseriesPoint;
+import com.dmart.oms.analytics.repository.DailySalesAggRepository;
+import com.dmart.oms.analytics.repository.KpiSnapshotRepository;
+import com.dmart.oms.analytics.service.AnalyticsService;
+
+//analytics/controller/AnalyticsController.java
+@RestController
+@RequestMapping("/api/admin/analytics")
+public class AnalyticsController {
+	private final DailySalesAggRepository dailyRepo;
+	private final KpiSnapshotRepository kpiRepo;
+	private final AnalyticsService service;
+
+	public AnalyticsController(DailySalesAggRepository dailyRepo, KpiSnapshotRepository kpiRepo,
+			AnalyticsService service) {
+		super();
+		this.dailyRepo = dailyRepo;
+		this.kpiRepo = kpiRepo;
+		this.service = service;
+	}
+
+	@GetMapping("/kpis")
+	public KpiResponse getKpis() {
+		var snap = kpiRepo.findTopByOrderByComputedAtDesc().orElseThrow();
+		return new KpiResponse(snap.getComputedAt(), snap.getRevenueLast24h(), snap.getOrdersLast24h(),
+				snap.getAovLast24h(), snap.getRefundRateLast7d(), snap.getFulfillmentSlaHitPct());
+	}
+
+	@GetMapping("/timeseries")
+	public List<TimeseriesPoint> timeseries(@RequestParam LocalDate from, @RequestParam LocalDate to,
+			@RequestParam(required = false) String vendor, @RequestParam(required = false) String product) {
+		var rows = vendor != null ? dailyRepo.findByVendorNameAndDateBetween(vendor, from, to)
+				: product != null ? dailyRepo.findByProductCodeAndDateBetween(product, from, to)
+						: dailyRepo.findByDateBetween(from, to);
+		return rows.stream().map(r -> new TimeseriesPoint(r.getDate(), r.getRevenue(), r.getOrders(), r.getAov(),
+				r.getCancellations(), r.getBackorders())).toList();
+	}
+
+// Admin triggers
+	@PostMapping("/rebuild/{day}")
+	public ResponseEntity<Void> rebuild(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
+		service.rebuildDailyAgg(day);
+		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping("/kpis")
+	public ResponseEntity<KpiResponse> latestKpis() {
+		return ResponseEntity.of(service.getLatestKpi());
+	}
+
+	@PostMapping("/backfill")
+	public void backfill(@RequestParam LocalDate from, @RequestParam LocalDate to) {
+		/* delegate */ }
+}

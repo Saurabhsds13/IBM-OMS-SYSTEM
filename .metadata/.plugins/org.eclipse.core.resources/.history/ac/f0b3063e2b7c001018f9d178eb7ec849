@@ -1,0 +1,49 @@
+package com.dmart.oms.common.event;
+
+ 
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.oms.notification.model.OutboxEvent;
+import com.dmart.oms.notification.repository.OutboxRepository;
+
+@Component
+public class OutboxDispatcher {
+
+	private static final Logger log = LoggerFactory.getLogger(OutboxDispatcher.class);
+
+	private final OutboxRepository outboxRepo;
+
+	public OutboxDispatcher(OutboxRepository outboxRepo) {
+		this.outboxRepo = outboxRepo;
+	}
+
+	// Run every 10 seconds (tune as needed)
+	@Scheduled(fixedRate = 10000)
+	@Transactional
+	public void dispatchEvents() {
+		List<OutboxEvent> events = outboxRepo.findTop10ByStatusOrderByCreatedAtAsc("PENDING");
+
+		for (OutboxEvent ev : events) {
+			try {
+				// 🚀 Simulate publishing to Kafka / RabbitMQ / Webhook
+				log.info("Dispatching event: type={} aggId={} payload={}", ev.getEventType(), ev.getAggregateId(),
+						ev.getPayload());
+
+				// Mark as published
+				ev.setStatus("PUBLISHED");
+				outboxRepo.save(ev);
+
+			} catch (Exception e) {
+				log.error("Failed to dispatch event id={}", ev.getId(), e);
+				// Could mark as "FAILED" for retry DLQ later
+			}
+		}
+	}
+}

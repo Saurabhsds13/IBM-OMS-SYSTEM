@@ -1,0 +1,5 @@
+package com.dmart.oms.shipping.controller;
+
+public class ShipmentController {
+
+}

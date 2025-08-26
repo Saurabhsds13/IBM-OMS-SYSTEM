@@ -1,1 +1,92 @@
-/.metadata/
+# --------------------------------------------
+# Core Build Artifacts
+# --------------------------------------------
+/target/
+/build/
+/out/
+/bin/
+/classes/
+
+# --------------------------------------------
+# IDE & Workspace Specific (Cross-Team Safe)
+# --------------------------------------------
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# VS Code
+.vscode/
+
+# --------------------------------------------
+# OS & Miscellaneous
+# --------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --------------------------------------------
+# Logs & Runtime Artifacts
+# --------------------------------------------
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# --------------------------------------------
+# Spring Boot Specific
+# --------------------------------------------
+# Exclude application-local configs
+application-*.yml
+application-*.yaml
+application-*.properties
+
+# Keep only default `application.properties` / `application.yml` in VCS if needed
+!application.properties
+!application.yml
+
+# --------------------------------------------
+# Dependency Managers
+# --------------------------------------------
+# Maven
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+**/build/
+!gradle-wrapper.jar
+
+# --------------------------------------------
+# Security & Credentials
+# --------------------------------------------
+*.key
+*.pem
+*.jks
+*.p12
+*.crt
+*.csr
+*.der
+*.secret
+*.env
+
+# --------------------------------------------
+# Docker / Containerization
+# --------------------------------------------
+/docker-compose.override.yml
+/.docker/
+/.dockerignore
+
+# --------------------------------------------
+# Testing Artifacts
+# --------------------------------------------
+/test-output/
+/surefire-reports/
+/jacoco.exec
+*.hprof

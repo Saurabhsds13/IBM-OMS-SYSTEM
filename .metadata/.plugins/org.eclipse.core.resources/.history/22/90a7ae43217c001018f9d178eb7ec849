@@ -1,0 +1,16 @@
+package com.dmart.oms.Inventory.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "inventory")
+public class Inventory {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	private String productCode;
+	private int availableQty;
+	private int reservedQty;
+	private String vendorName; // Vendor1, Vendor2, etc.
+}

@@ -1,0 +1,14 @@
+package com.dmart.oms.notification.repository;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.dmart.oms.notification.model.OutboxEvent;
+
+//notification/repository/OutboxRepository.java
+public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
+	List<OutboxEvent> findTop100ByStatusOrderByCreatedAt(String status);
+
+	List<OutboxEvent> findTop10ByStatusOrderByCreatedAtAsc(String status);
+}

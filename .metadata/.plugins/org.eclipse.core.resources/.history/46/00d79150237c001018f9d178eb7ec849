@@ -1,0 +1,30 @@
+package com.dmart.oms.analytics.model;
+
+import java.time.LocalDate;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+
+//analytics/model/DailySalesAgg.java
+@Entity
+@Table(name = "daily_sales_agg", indexes = { @Index(name = "idx_dsa_date", columnList = "date"),
+		@Index(name = "idx_dsa_vendor_date", columnList = "vendorName,date"),
+		@Index(name = "idx_dsa_product_date", columnList = "productCode,date") })
+public class DailySalesAgg {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private LocalDate date; // partition key
+	private String vendorName; // null = global
+	private String productCode; // optional
+	private double revenue; // sum(payments.SUCCESS.amount)
+	private long orders; // count(orders)
+	private double aov; // revenue / orders
+	private long cancellations; // count(orders.CANCELLED)
+	private long backorders; // count(orders.BACKORDERED)
+// getters/setters
+}

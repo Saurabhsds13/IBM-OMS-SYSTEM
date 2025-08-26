@@ -1,0 +1,72 @@
+package com.dmart.oms.order.controller;
+
+import com.dmart.oms.common.dto.ApiResponse;
+import com.dmart.oms.common.exception.ErrorCode;
+import com.dmart.oms.order.model.Order;
+import com.dmart.oms.order.service.OrderService;
+import jakarta.validation.constraints.Min;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/admin/orders")
+public class OrderController {
+
+	private static final Logger log = LoggerFactory.getLogger(OrderController.class);
+
+	private final OrderService service;
+
+	public OrderController(OrderService service) {
+		this.service = service;
+	}
+
+	@GetMapping
+	public ResponseEntity<ApiResponse<List<Order>>> getAllOrders() {
+		log.info("Fetching all orders");
+		List<Order> orders = service.getAllOrders();
+
+		if (orders == null || orders.isEmpty()) {
+			log.info("No orders found in the system");
+			return ResponseEntity.ok(ApiResponse.success(orders, "No orders found"));
+		}
+
+		return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<Order>> getOrderById(@PathVariable Long id) {
+		log.info("Fetching order with id={}", id);
+		return service.getOrderById(id)
+				.map(order -> ResponseEntity.ok(ApiResponse.success(order, "Order retrieved successfully")))
+				.orElseThrow(() -> new Exception("Order with id=" + id + " not found", ErrorCode.ORD_001 // domain-specific
+																											// error
+																											// code
+				));
+	}
+
+	@PostMapping("/{id}/approve")
+	public ResponseEntity<ApiResponse<Order>> approveOrder(@PathVariable Long id) {
+		log.info("Approving order with id={}", id);
+		Order order = service.approveOrder(id);
+		return ResponseEntity.ok(ApiResponse.success(order, "Order approved successfully"));
+	}
+
+	@PostMapping("/{id}/cancel")
+	public ResponseEntity<ApiResponse<Order>> cancelOrder(@PathVariable Long id) {
+		log.info("Cancelling order with id={}", id);
+		Order order = service.cancelOrder(id);
+		return ResponseEntity.ok(ApiResponse.success(order, "Order cancelled successfully"));
+	}
+
+	@PostMapping("/{id}/partial-ship")
+	public ResponseEntity<ApiResponse<Order>> partialShip(@PathVariable Long id,
+			@RequestParam @Min(value = 1, message = "Quantity must be at least 1") int qty) {
+		log.info("Partially shipping {} units for order with id={}", qty, id);
+		Order order = service.shipPartially(id, qty);
+		return ResponseEntity.ok(ApiResponse.success(order, "Order partially shipped"));
+	}
+}

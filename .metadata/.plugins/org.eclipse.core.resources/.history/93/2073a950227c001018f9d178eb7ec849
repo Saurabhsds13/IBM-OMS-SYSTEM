@@ -1,0 +1,5 @@
+package com.dmart.oms.shipping.repository;
+
+public interface ShipmentRepository {
+
+}

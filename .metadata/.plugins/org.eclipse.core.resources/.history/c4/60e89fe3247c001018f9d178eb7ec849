@@ -1,0 +1,149 @@
+package com.dmart.oms.analytics.service;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.oms.analytics.model.DailySalesAgg;
+import com.dmart.oms.analytics.model.KpiSnapshot;
+import com.dmart.oms.analytics.repository.DailySalesAggRepository;
+import com.dmart.oms.analytics.repository.KpiSnapshotRepository;
+
+import jakarta.persistence.EntityManager;
+
+//analytics/service/AnalyticsService.java
+@Service
+public class AnalyticsService {
+	private final DailySalesAggRepository dailyRepo;
+	private final KpiSnapshotRepository kpiRepo;
+	private final EntityManager em; // read operational tables: orders, payments, shipments
+
+	public AnalyticsService(DailySalesAggRepository d, KpiSnapshotRepository k, EntityManager em) {
+		this.dailyRepo = d;
+		this.kpiRepo = k;
+		this.em = em;
+	}
+
+	@Transactional
+	public void rebuildDailyAgg(LocalDate day) {
+		// Pseudo: run native reads for that day and upsert aggregates
+		// 1) revenue/orders from payments SUCCESS
+		// 2) cancellations/backorders from orders
+		// 3) vendor/product breakdowns (group by vendorName, productCode)
+		// Write rows to daily_sales_agg (global + vendor + product)
+
+		// 1) Global aggregates (revenue, orders, cancellations, backorders)
+		var globalSql = """
+				SELECT
+				  DATE(o.created_at) as date,
+				  NULL as vendor_name,
+				  NULL as product_code,
+				  COALESCE(SUM(CASE WHEN p.status = 'SUCCESS' THEN p.amount ELSE 0 END),0) as revenue,
+				  COUNT(DISTINCT o.id) as orders,
+				  COALESCE(SUM(CASE WHEN o.status = 'CANCELLED' THEN 1 ELSE 0 END),0) as cancellations,
+				  COALESCE(SUM(CASE WHEN o.status = 'BACKORDERED' THEN 1 ELSE 0 END),0) as backorders
+				FROM orders o
+				LEFT JOIN payments p ON p.order_number = o.order_number
+				WHERE DATE(o.created_at) = :day
+				GROUP BY DATE(o.created_at)
+				""";
+
+		List<Object[]> globals = em.createNativeQuery(globalSql).setParameter("day", day).getResultList();
+
+		upsertAggRows(globals);
+
+		// 2) Vendor-level aggregates (group by vendor)
+		var vendorSql = """
+				SELECT DATE(o.created_at) as date,
+				       COALESCE(o.vendor_name, 'UNKNOWN') as vendor_name,
+				       NULL as product_code,
+				       COALESCE(SUM(CASE WHEN p.status = 'SUCCESS' THEN p.amount ELSE 0 END),0) as revenue,
+				       COUNT(DISTINCT o.id) as orders,
+				       COALESCE(SUM(CASE WHEN o.status = 'CANCELLED' THEN 1 ELSE 0 END),0) as cancellations,
+				       COALESCE(SUM(CASE WHEN o.status = 'BACKORDERED' THEN 1 ELSE 0 END),0) as backorders
+				FROM orders o
+				LEFT JOIN payments p ON p.order_number = o.order_number
+				WHERE DATE(o.created_at) = :day
+				GROUP BY DATE(o.created_at), COALESCE(o.vendor_name,'UNKNOWN')
+				""";
+
+		List<Object[]> vendors = em.createNativeQuery(vendorSql).setParameter("day", day).getResultList();
+
+		upsertAggRows(vendors);
+
+		// 3) Product-level aggregates (group by product_code)
+		var productSql = """
+				SELECT DATE(o.created_at) as date,
+				       NULL as vendor_name,
+				       oi.product_code as product_code,
+				       COALESCE(SUM(CASE WHEN p.status = 'SUCCESS' THEN p.amount ELSE 0 END),0) as revenue,
+				       COUNT(DISTINCT o.id) as orders,
+				       COALESCE(SUM(CASE WHEN o.status = 'CANCELLED' THEN 1 ELSE 0 END),0) as cancellations,
+				       COALESCE(SUM(CASE WHEN o.status = 'BACKORDERED' THEN 1 ELSE 0 END),0) as backorders
+				FROM orders o
+				JOIN order_items oi ON oi.order_id = o.id
+				LEFT JOIN payments p ON p.order_number = o.order_number
+				WHERE DATE(o.created_at) = :day
+				GROUP BY DATE(o.created_at), oi.product_code
+				""";
+
+		List<Object[]> products = em.createNativeQuery(productSql).setParameter("day", day).getResultList();
+
+		upsertAggRows(products);
+	}
+
+	@Transactional
+	public void computeKpis(Duration window) {
+		// Compose last-24h / last-7d KPIs using daily rollups + operational reads
+		KpiSnapshot k = new KpiSnapshot();
+		k.setComputedAt(LocalDateTime.now());
+		// set fields...
+		kpiRepo.save(k);
+	}
+
+	@Transactional
+	public void backfill(LocalDate from, LocalDate to) {
+		for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1))
+			rebuildDailyAgg(d);
+		computeKpis(Duration.ofDays(1));
+	}
+
+	/Helper:map
+
+	native result rows->
+	DailySalesAgg and upsert
+
+	private void upsertAggRows(List<Object[]> rows) {
+	    for (Object[] r : rows) {
+	      // mapping depends on SELECT column order used above
+	      LocalDate date = ((java.sql.Date) r[0]).toLocalDate();
+	      String vendor = r[1] == null ? null : r[1].toString();
+	      String product = r[2] == null ? null : r[2].toString();
+	      double revenue = r[3] == null ? 0.0 : ((Number) r[3]).doubleValue();
+	      long orders = r[4] == null ? 0L : ((Number) r[4]).longValue();
+	      long cancellations = r[5] == null ? 0L : ((Number) r[5]).longValue();
+	      long backorders = r[6] == null ? 0L : ((Number) r[6]).longValue();
+	      double aov = orders == 0 ? 0.0 : revenue / orders;
+
+	      // Try to find existing row
+	      Optional<DailySalesAgg> existing = dailyRepo
+	        .findByDateAndVendorNameAndProductCode(date, vendor, product);
+
+	      DailySalesAgg agg = existing.orElseGet(DailySalesAgg::new);
+	      agg.setDate(date);
+	      agg.setVendorName(vendor);
+	      agg.setProductCode(product);
+	      agg.setRevenue(revenue);
+	      agg.setOrders(orders);
+	      agg.setAov(aov);
+	      agg.setCancellations(cancellations);
+	      agg.setBackorders(backorders);
+
+	      dailyRepo.save(agg); // upsert
+	    }}
+}

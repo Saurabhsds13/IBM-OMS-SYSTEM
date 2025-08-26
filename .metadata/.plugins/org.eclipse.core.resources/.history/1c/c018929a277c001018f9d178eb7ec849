@@ -1,0 +1,51 @@
+package com.dmart.oms.order.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.dmart.oms.notification.model.OutboxEvent;
+import com.dmart.oms.order.model.Order;
+import com.dmart.oms.order.repository.OrderRepository;
+
+@Service
+public class OrderService {
+
+	private final OrderRepository repo;
+
+	public OrderService(OrderRepository repo) {
+		this.repo = repo;
+	}
+
+	public List<Order> getAllOrders() {
+		return repo.findAll();
+	}
+
+	public Order approveOrder(Long id) {
+		Order order = repo.findById(id).orElseThrow();
+		order.setStatus("APPROVED");
+		return repo.save(order);
+		
+		OutboxEvent ev = new OutboxEvent();
+		  ev.setAggregateType("ORDER");
+		  ev.setAggregateId(order.getOrderNumber());
+		  ev.setEventType("ORDER_APPROVED");
+		  ev.setPayload(toJson(...));
+		  ev.setStatus("PENDING");
+		  outboxRepo.save(ev); // same tx
+	}
+
+	public Order cancelOrder(Long id) {
+		Order order = repo.findById(id).orElseThrow();
+		order.setStatus("CANCELLED");
+		return repo.save(order);
+	}
+
+	// Unique feature: Partial shipment
+	public Order shipPartially(Long id, int quantity) {
+		Order order = repo.findById(id).orElseThrow();
+		order.setStatus("PARTIALLY_SHIPPED");
+		// logic to adjust shipped quantities
+		return repo.save(order);
+	}
+}

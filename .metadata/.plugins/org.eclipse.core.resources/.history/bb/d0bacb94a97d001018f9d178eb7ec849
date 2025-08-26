@@ -1,0 +1,25 @@
+package com.dmart.oms.analytics.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.dmart.oms.analytics.model.DailySalesAgg;
+
+//analytics/repository/DailySalesAggRepository.java
+public interface DailySalesAggRepository extends JpaRepository<DailySalesAgg, Long> {
+
+	List<DailySalesAgg> findByDateBetween(LocalDate from, LocalDate to);
+
+	List<DailySalesAgg> findByVendorNameAndDateBetween(String vendor, LocalDate f, LocalDate t);
+
+	List<DailySalesAgg> findByProductCodeAndDateBetween(String product, LocalDate f, LocalDate t);
+
+	Optional<DailySalesAgg> findByDateAndVendorNameAndProductCode(LocalDate date, String vendorName,
+			String productCode);
+
+	Optional<DailySalesAgg> findTop1ByVendorNameIsNullAndProductCodeIsNullOrderByDateDesc();
+
+}

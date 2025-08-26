@@ -1,0 +1,5 @@
+package com.dmart.oms.order.controller;
+
+public class InventoryController {
+
+}

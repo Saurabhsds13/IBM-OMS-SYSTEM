@@ -1,0 +1,7 @@
+package com.dmart.oms.common.event;
+
+import com.dmart.oms.notification.model.OutboxEvent;
+
+public interface OutboxPublisher {
+	void publish(String aggregateType, String aggregateId, String eventType, Object payload) throws Exception;
+}

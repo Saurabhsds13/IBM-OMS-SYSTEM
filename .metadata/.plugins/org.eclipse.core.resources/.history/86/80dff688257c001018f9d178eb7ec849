@@ -1,0 +1,5 @@
+package com.dmart.oms.notification.service;
+
+public interface NotificationSender {
+
+}

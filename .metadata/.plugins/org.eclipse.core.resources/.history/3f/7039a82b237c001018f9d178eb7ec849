@@ -1,0 +1,5 @@
+package com.dmart.oms.analytics.model;
+
+public class DailySalesAgg {
+
+}

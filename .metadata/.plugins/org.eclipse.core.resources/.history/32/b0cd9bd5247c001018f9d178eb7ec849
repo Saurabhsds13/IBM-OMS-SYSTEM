@@ -1,0 +1,53 @@
+package com.dmart.oms.analytics.service;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.dmart.oms.analytics.model.KpiSnapshot;
+import com.dmart.oms.analytics.repository.DailySalesAggRepository;
+import com.dmart.oms.analytics.repository.KpiSnapshotRepository;
+
+import jakarta.persistence.EntityManager;
+
+//analytics/service/AnalyticsService.java
+@Service
+public class AnalyticsService {
+	private final DailySalesAggRepository dailyRepo;
+	private final KpiSnapshotRepository kpiRepo;
+	private final EntityManager em; // read operational tables: orders, payments, shipments
+
+	public AnalyticsService(DailySalesAggRepository d, KpiSnapshotRepository k, EntityManager em) {
+		this.dailyRepo = d;
+		this.kpiRepo = k;
+		this.em = em;
+	}
+
+	@Transactional
+	public void rebuildDailyAgg(LocalDate day) {
+		// Pseudo: run native reads for that day and upsert aggregates
+		// 1) revenue/orders from payments SUCCESS
+		// 2) cancellations/backorders from orders
+		// 3) vendor/product breakdowns (group by vendorName, productCode)
+		// Write rows to daily_sales_agg (global + vendor + product)
+	}
+
+	@Transactional
+	public void computeKpis(Duration window) {
+		// Compose last-24h / last-7d KPIs using daily rollups + operational reads
+		KpiSnapshot k = new KpiSnapshot();
+		k.setComputedAt(LocalDateTime.now());
+		// set fields...
+		kpiRepo.save(k);
+	}
+
+	@Transactional
+	public void backfill(LocalDate from, LocalDate to) {
+		for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1))
+			rebuildDailyAgg(d);
+		computeKpis(Duration.ofDays(1));
+	}
+}
