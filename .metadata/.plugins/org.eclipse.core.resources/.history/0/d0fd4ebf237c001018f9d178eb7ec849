@@ -1,5 +1,0 @@
-package com.dmart.oms.analytics.dto;
-
-public class TimeseriesPoint {
-
-}

@@ -30,8 +30,6 @@
 		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
 	</section>
 	<section name="">
-		<item key="org.eclipse.jdt.search.resultpage.limit" value="1000"/>
-		<item key="org.eclipse.jdt.search.resultpage.limit_enabled" value="TRUE"/>
 		<item key="org.eclipse.search.resultpage.limit" value="1000"/>
 	</section>
 	<section name="org.eclipse.jdt.ui.JavaSearchResultPage">
@@ -86,9 +84,6 @@
 		</section>
 	</section>
 	<section name="org.eclipse.search.text.FileSearchResultPage">
-		<item key="org.eclipse.search.resultpage.limit" value="1000"/>
-	</section>
-	<section name="">
 		<item key="org.eclipse.search.resultpage.limit" value="1000"/>
 	</section>
 </section>

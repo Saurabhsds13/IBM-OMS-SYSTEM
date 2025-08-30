@@ -1,10 +1,12 @@
 package com.dmart.oms.Inventory.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dmart.oms.Inventory.dto.InventoryUpdateRequest;
 import com.dmart.oms.Inventory.model.Inventory;
 import com.dmart.oms.Inventory.repository.InventoryRepository;
 
@@ -23,21 +25,91 @@ public class InventoryService {
 
 	@Transactional
 	public Inventory reserveStock(String productCode, int qty) {
-		List<Inventory> stocks = repo.findByProductCode(productCode);
-		if (stocks.isEmpty())
-			throw new RuntimeException("Product not found in inventory");
 
-		for (Inventory stock : stocks) {
-			if (stock.getAvailableQty() >= qty) {
-				stock.setAvailableQty(stock.getAvailableQty() - qty);
-				stock.setReservedQty(stock.getReservedQty() + qty);
-				return repo.save(stock);
-			}
+		Inventory stock = repo.findByProductCodeForUpdate(productCode)
+				.orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+		if (stock.getAvailableQty() < qty) {
+			throw new IllegalStateException("Insufficient stock");
 		}
-		throw new RuntimeException("Insufficient stock - consider backorder");
+
+		stock.setAvailableQty(stock.getAvailableQty() - qty);
+		stock.setReservedQty(stock.getReservedQty() + qty);
+		return repo.save(stock);
+
 	}
 
 	public Inventory addStock(Inventory inventory) {
 		return repo.save(inventory);
 	}
+
+	public Inventory updateInventory(Long inventoryId, Inventory inventory) {
+		Optional<Inventory> optionalInventory = repo.findById(inventoryId);
+
+		if (optionalInventory.isPresent()) {
+
+			Inventory existingInventory = optionalInventory.get();
+			existingInventory.setDemand(inventory.getDemand());
+			existingInventory.setAvailableQty(inventory.getAvailableQty());
+			existingInventory.setLocation(inventory.getLocation());
+			existingInventory.setSupply(inventory.getSupply());
+
+			return repo.save(existingInventory);
+		} else
+
+			return null;
+	}
+
+	@Transactional
+	public Inventory releaseStock(String productCode, int qty) {
+		Inventory stock = repo.findByProductCodeForUpdate(productCode)
+				.orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+		if (stock.getReservedQty() < qty) {
+			throw new IllegalStateException("Cannot release more stock than reserved");
+		}
+
+		stock.setReservedQty(stock.getReservedQty() - qty);
+		stock.setAvailableQty(stock.getAvailableQty() + qty);
+
+		return repo.save(stock);
+	}
+
+	@Transactional(readOnly = true)
+	public Inventory getInventory(String productCode) {
+		return repo.findByProductCode(productCode).orElseThrow(() -> new IllegalArgumentException("Product not found"));
+	}
+
+	public void deleteInventory(Long inventoryId) {
+		repo.deleteById(inventoryId);
+		System.out.println("Article" + inventoryId + " is Deleted Successfully");
+	}
+
+	@Transactional
+	public Inventory updateInventory(String productCode, InventoryUpdateRequest request) {
+		Inventory stock = repo.findByProductCodeForUpdate(productCode)
+				.orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+		if (request.getAvailableQty() != null) {
+			stock.setAvailableQty(request.getAvailableQty());
+		}
+		if (request.getReservedQty() != null) {
+			stock.setReservedQty(request.getReservedQty());
+		}
+		if (request.getVendorName() != null) {
+			stock.setVendorName(request.getVendorName());
+		}
+		if (request.getLocation() != null) {
+			stock.setLocation(request.getLocation());
+		}
+		if (request.getDemand() != null) {
+			stock.setDemand(request.getDemand());
+		}
+		if (request.getSupply() != null) {
+			stock.setSupply(request.getSupply());
+		}
+
+		return repo.save(stock);
+	}
+
 }

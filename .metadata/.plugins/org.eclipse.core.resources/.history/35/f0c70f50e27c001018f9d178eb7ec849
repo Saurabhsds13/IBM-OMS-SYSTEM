@@ -1,5 +1,0 @@
-package com.dmart.oms.common.model;
-
-public class OutboxEvent {
-
-}

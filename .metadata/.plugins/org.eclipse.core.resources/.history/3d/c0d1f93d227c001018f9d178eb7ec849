@@ -1,5 +1,0 @@
-package com.dmart.oms.shipping.model;
-
-public class ShipmentEvent {
-
-}

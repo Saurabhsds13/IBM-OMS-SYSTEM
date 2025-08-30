@@ -1,5 +1,0 @@
-package com.dmart.oms.order.dto;
-
-public class OrderResponse {
-
-}

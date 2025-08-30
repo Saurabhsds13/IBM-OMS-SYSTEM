@@ -1,8 +1,0 @@
-package com.dmart.oms.common.model;
-
-public class Snippet {
-	public static void main(String[] args) {
-		OutboxEvent
-	}
-}
-

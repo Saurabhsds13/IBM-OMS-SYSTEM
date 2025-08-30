@@ -1,5 +1,0 @@
-package com.dmart.oms.payment.repository;
-
-public interface PaymentRepository {
-
-}

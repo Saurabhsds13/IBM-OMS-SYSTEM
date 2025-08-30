@@ -1,0 +1,11 @@
+package com.dmart.oms.Inventory.dto;
+
+public class InventoryUpdateRequest {
+
+	private Integer availableQty;
+	private Integer reservedQty;
+	private String vendorName;
+	private String location;
+	private Integer demand;
+	private Integer supply;
+}

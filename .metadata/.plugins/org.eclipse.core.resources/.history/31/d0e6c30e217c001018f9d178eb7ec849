@@ -1,5 +1,0 @@
-package com.dmart.oms.Inventory.repository;
-
-public interface InventoryRepository {
-
-}

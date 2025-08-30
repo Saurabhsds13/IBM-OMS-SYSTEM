@@ -1,5 +1,0 @@
-package com.dmart.oms.common.exception;
-
-public class GlobalExceptionHandler {
-
-}
