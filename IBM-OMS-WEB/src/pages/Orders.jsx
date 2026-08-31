@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import { exportCsv } from '../services/csv';
+import { subscribeOrderStream } from '../services/orderStream';
 import IntakeModal from './orders/IntakeModal';
 import OrderDrawer from './orders/OrderDrawer';
 
@@ -46,6 +47,19 @@ export default function Orders() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live updates: subscribe once to the SSE stream. On each order-status event,
+  // toast it and refresh the current view.
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    const unsubscribe = subscribeOrderStream((event) => {
+      setLive(true);
+      toast.info(`${event.orderNumber}: ${event.status}`);
+      load({ status, orderNumber: search.trim() });
+    });
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, search]);
 
   const applyFilters = () => load({ status, orderNumber: search.trim() });
   const clearFilters = () => {
@@ -200,6 +214,9 @@ export default function Orders() {
         subtitle="Review and manage the order lifecycle."
         actions={
           <>
+            <span className={`live-dot ${live ? 'on' : ''}`} title={live ? 'Live updates active' : 'Connecting…'}>
+              ● Live
+            </span>
             <button className="btn" onClick={exportRows} disabled={orders.length === 0}>
               Export CSV
             </button>

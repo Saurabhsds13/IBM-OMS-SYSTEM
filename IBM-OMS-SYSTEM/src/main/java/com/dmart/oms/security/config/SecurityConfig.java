@@ -39,6 +39,9 @@ public class SecurityConfig {
 	private static final String[] PUBLIC_ENDPOINTS = {
 			"/api/v1/auth/login",
 			"/api/v1/auth/refresh",
+			// SSE stream: EventSource cannot send an Authorization header. Carries
+			// only order-status notifications (order number + status), no sensitive data.
+			"/api/v1/admin/orders/stream",
 			"/v3/api-docs",
 			"/v3/api-docs/**",
 			"/swagger-ui.html",

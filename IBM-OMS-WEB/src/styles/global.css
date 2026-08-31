@@ -157,6 +157,15 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* Live indicator */
+.live-dot {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-subtle);
+  letter-spacing: 0.02em;
+}
+.live-dot.on { color: var(--green); }
+
 /* Bulk action bar */
 .bulk-bar {
   display: flex;
