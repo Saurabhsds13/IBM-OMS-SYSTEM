@@ -47,6 +47,17 @@ Payment and notification admin endpoints are restricted to `ADMIN`.
 
 ---
 
+## Architecture
+### System Architecture
+
+![System Architecture](https://github.com/user-attachments/assets/79badabc-240f-4d4d-b326-5ca1551ae95c)
+
+### Database Schema
+
+![ERD](https://github.com/user-attachments/assets/f7b86746-e6c2-4587-a537-48af04c442d5)
+
+---
+
 ## Key Endpoints
 | Method | Path | Roles |
 |---|---|---|
