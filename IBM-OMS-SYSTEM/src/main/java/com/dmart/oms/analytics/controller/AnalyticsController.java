@@ -18,9 +18,13 @@ import com.dmart.oms.analytics.repository.DailySalesAggRepository;
 import com.dmart.oms.analytics.repository.KpiSnapshotRepository;
 import com.dmart.oms.analytics.service.AnalyticsService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 //analytics/controller/AnalyticsController.java
 @RestController
 @RequestMapping("/api/admin/analytics")
+@SecurityRequirement(name = "bearerAuth")
 public class AnalyticsController {
 
 	private final DailySalesAggRepository dailyRepo;
@@ -36,6 +40,7 @@ public class AnalyticsController {
 	}
 
 	@GetMapping("/kpis/all")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
 	public KpiResponse getKpis() {
 		var snap = kpiRepo.findTopByOrderByComputedAtDesc().orElseThrow();
 		return new KpiResponse(snap.getComputedAt(), snap.getRevenueLast24h(), snap.getOrdersLast24h(),
@@ -43,6 +48,7 @@ public class AnalyticsController {
 	}
 
 	@GetMapping("/timeseries")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
 	public List<TimeseriesPoint> timeseries(@RequestParam LocalDate from, @RequestParam LocalDate to,
 			@RequestParam(required = false) String vendor, @RequestParam(required = false) String product) {
 		var rows = vendor != null ? dailyRepo.findByVendorNameAndDateBetween(vendor, from, to)
@@ -54,17 +60,20 @@ public class AnalyticsController {
 
 // Admin triggers
 	@PostMapping("/rebuild/{day}")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public ResponseEntity<Void> rebuild(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day) {
 		service.rebuildDailyAgg(day);
 		return ResponseEntity.ok().build();
 	}
 
 	@GetMapping("/kpis/latest")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
 	public ResponseEntity<KpiResponse> latestKpis() {
 		return ResponseEntity.of(service.getLatestKpi());
 	}
 
 	@PostMapping("/backfill")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public void backfill(@RequestParam LocalDate from, @RequestParam LocalDate to) {
 		/* delegate */ }
 }

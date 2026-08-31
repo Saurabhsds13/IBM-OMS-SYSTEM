@@ -19,12 +19,15 @@ import com.dmart.oms.Inventory.model.Inventory;
 import com.dmart.oms.Inventory.service.InventoryService;
 import com.dmart.oms.common.dto.ApiResponse;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/v1/admin/inventory")
+@SecurityRequirement(name = "bearerAuth")
 public class InventoryController {
 
 	private static final Logger log = LoggerFactory.getLogger(InventoryController.class);
@@ -36,6 +39,7 @@ public class InventoryController {
 	}
 
 	@GetMapping
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<List<Inventory>>> getAllStock() {
 
 		log.info("Fetching all inventory stock");
@@ -45,6 +49,7 @@ public class InventoryController {
 	}
 
 	@GetMapping("/inventory/{productCode}")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<Inventory>> getInventory(
 			@PathVariable @NotBlank(message = "Product code cannot be blank") String productCode) {
 
@@ -55,6 +60,7 @@ public class InventoryController {
 	}
 
 	@PostMapping("/reserve")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<Inventory>> reserveStock(
 			@RequestParam @NotBlank(message = "Product code cannot be blank") String productCode,
 			@RequestParam @Min(value = 1, message = "Quantity must be at least 1") int qty) {
@@ -66,6 +72,7 @@ public class InventoryController {
 	}
 
 	@PostMapping("/release")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<Inventory>> releaseStock(
 			@RequestParam @NotBlank(message = "Product code cannot be blank") String productCode,
 			@RequestParam @Min(value = 1, message = "Quantity must be at least 1") int qty) {
@@ -77,6 +84,7 @@ public class InventoryController {
 	}
 
 	@PostMapping
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<Inventory>> addStock(@Valid @RequestBody Inventory inventory) {
 
 		log.info("Adding new stock: {}", inventory);
@@ -85,6 +93,7 @@ public class InventoryController {
 	}
 
 	@PutMapping("/inventory/{productCode}")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 	public ResponseEntity<ApiResponse<Inventory>> updateInventory(
 			@PathVariable @NotBlank(message = "Product code cannot be blank") String productCode,
 			@RequestBody InventoryUpdateRequest request) {

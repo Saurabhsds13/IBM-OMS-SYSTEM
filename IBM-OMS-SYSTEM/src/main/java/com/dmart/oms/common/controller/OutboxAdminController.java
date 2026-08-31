@@ -11,9 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dmart.oms.common.model.OutboxEvent;
 import com.dmart.oms.common.repository.OutboxRepository;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 //notification/controller/OutboxAdminController.java
 @RestController
 @RequestMapping("/api/admin/notifications")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasRole('ADMIN')")
 public class OutboxAdminController {
 	private final OutboxRepository repo;
 

@@ -12,8 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dmart.oms.shipping.model.Shipment;
 import com.dmart.oms.shipping.service.ShipmentService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/admin/shipping")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
 public class ShipmentController {
 	private final ShipmentService service;
 

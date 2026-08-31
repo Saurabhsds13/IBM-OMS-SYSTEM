@@ -9,8 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dmart.oms.payment.model.Payment;
 import com.dmart.oms.payment.service.PaymentService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/admin/payments")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasRole('ADMIN')")
 public class PaymentController {
 	private final PaymentService service;
 

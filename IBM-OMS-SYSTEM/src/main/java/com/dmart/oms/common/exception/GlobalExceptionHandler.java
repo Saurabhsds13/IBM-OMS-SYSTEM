@@ -5,16 +5,51 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.dmart.oms.common.dto.ErrorResponse;
+import com.dmart.oms.security.exception.AccountLockedException;
+import com.dmart.oms.security.exception.AuthenticationFailedException;
+import com.dmart.oms.security.exception.InvalidRoleException;
+import com.dmart.oms.security.exception.UsernameAlreadyExistsException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(AuthenticationFailedException.class)
+	public ResponseEntity<ErrorResponse> handleAuthFailed(AuthenticationFailedException ex,
+			HttpServletRequest request) {
+		HttpStatus status = HttpStatus.UNAUTHORIZED;
+		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), "UNAUTHORIZED", status.value(),
+				request.getRequestURI(), null));
+	}
+
+	@ExceptionHandler(AccountLockedException.class)
+	public ResponseEntity<ErrorResponse> handleAccountLocked(AccountLockedException ex, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.LOCKED;
+		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), "ACCOUNT_LOCKED", status.value(),
+				request.getRequestURI(), null));
+	}
+
+	@ExceptionHandler(UsernameAlreadyExistsException.class)
+	public ResponseEntity<ErrorResponse> handleUsernameExists(UsernameAlreadyExistsException ex,
+			HttpServletRequest request) {
+		HttpStatus status = HttpStatus.CONFLICT;
+		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), "USERNAME_EXISTS", status.value(),
+				request.getRequestURI(), null));
+	}
+
+	@ExceptionHandler(InvalidRoleException.class)
+	public ResponseEntity<ErrorResponse> handleInvalidRole(InvalidRoleException ex, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.BAD_REQUEST;
+		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), "INVALID_ROLE", status.value(),
+				request.getRequestURI(), null));
+	}
 
 	@ExceptionHandler(BusinessException.class)
 	public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex, HttpServletRequest request) {
@@ -25,7 +60,9 @@ public class GlobalExceptionHandler {
 			status = HttpStatus.NOT_FOUND;
 
 		} else if (ex.getErrorCode() == ErrorCode.ORD_002) {
-			status = HttpStatus.ALREADY_REPORTED;
+			// Invalid order state transition (already approved / cancelled / shipped)
+			// maps to 409 CONFLICT (Requirements 12.3, 13.2, 13.3).
+			status = HttpStatus.CONFLICT;
 		}
 
 		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), ex.getErrorCode().name(),
@@ -50,6 +87,13 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.badRequest().body(ErrorResponse.of("Validation failed", "VALIDATION_ERROR",
 				HttpStatus.BAD_REQUEST.value(), request.getRequestURI(), details));
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+		HttpStatus status = HttpStatus.FORBIDDEN;
+		return ResponseEntity.status(status).body(ErrorResponse.of("Access denied", "FORBIDDEN", status.value(),
+				request.getRequestURI(), null));
 	}
 
 	@ExceptionHandler(Exception.class)

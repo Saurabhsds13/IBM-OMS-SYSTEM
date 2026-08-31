@@ -90,3 +90,9 @@ application-*.properties
 /surefire-reports/
 /jacoco.exec
 *.hprof
+
+# --------------------------------------------
+# Kiro
+# --------------------------------------------
+.config.kiro
+**/.config.kiro

@@ -21,8 +21,8 @@ public class OutboxDispatcher {
 		this.publishers = publishers;
 	}
 
-	// Run every 10 seconds (tune as needed)
-	@Scheduled(fixedRate = 300000000)
+	// Run every 10 seconds (Requirement 11.1).
+	@Scheduled(fixedRate = 10000)
 	@Transactional
 	public void dispatchEvents() {
 		List<OutboxEvent> events = outboxRepo.findTop10ByStatusOrderByCreatedAtAsc("PENDING");
