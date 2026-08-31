@@ -16,6 +16,7 @@ import com.dmart.oms.common.utils.OrderMapper;
 import com.dmart.oms.order.dto.BulkActionResult;
 import com.dmart.oms.order.dto.BulkOrderActionRequest;
 import com.dmart.oms.order.dto.BulkOrderActionRequest.BulkAction;
+import com.dmart.oms.order.dto.FulfillmentLine;
 import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.dto.OrderIntakeRequest;
 import com.dmart.oms.order.dto.OrderIntakeResult;
@@ -204,21 +205,103 @@ public class OrderService {
 		return repo.findById(id).map(OrderMapper::toDTO);
 	}
 
-	// Unique feature: Partial shipment
+	/**
+	 * Fulfills specific quantities per line item. Quantities are additive to what
+	 * has already shipped. Validates that:
+	 * <ul>
+	 * <li>the order is in a shippable state (APPROVED or PARTIALLY_SHIPPED),</li>
+	 * <li>each requested product exists on the order,</li>
+	 * <li>no item is shipped beyond its ordered quantity (over-ship).</li>
+	 * </ul>
+	 * The resulting order status is derived from the aggregate: fully shipped
+	 * across all items -&gt; SHIPPED (emits ORDER_SHIPPED), otherwise
+	 * PARTIALLY_SHIPPED (emits ORDER_PARTIALLY_SHIPPED). All within one
+	 * transaction.
+	 */
+	@Transactional
+	public OrderDTO fulfill(Long id, List<FulfillmentLine> lines) {
+		Order order = repo.findById(id)
+				.orElseThrow(() -> new BusinessException("Order not found with id=" + id, ErrorCode.ORD_001));
+
+		String previous = order.getStatus();
+		if (!"APPROVED".equals(previous) && !"PARTIALLY_SHIPPED".equals(previous)) {
+			throw new BusinessException(
+					"Order must be APPROVED or PARTIALLY_SHIPPED to fulfill (was " + previous + ")", ErrorCode.ORD_002);
+		}
+
+		List<OrderItem> items = order.getItems();
+		if (items == null || items.isEmpty()) {
+			throw new BusinessException("Order has no line items to fulfill", ErrorCode.ORD_003);
+		}
+
+		// Apply each requested line against a matching item, validating no over-ship.
+		for (FulfillmentLine line : lines) {
+			OrderItem item = items.stream()
+					.filter(i -> i.getProductCode() != null && i.getProductCode().equals(line.productCode()))
+					.findFirst()
+					.orElseThrow(() -> new BusinessException(
+							"Product " + line.productCode() + " is not on order " + order.getOrderNumber(),
+							ErrorCode.ORD_003));
+
+			int remaining = item.getQuantity() - item.getShippedQuantity();
+			if (line.quantity() > remaining) {
+				throw new BusinessException(
+						"Cannot ship " + line.quantity() + " of " + line.productCode() + "; only " + remaining
+								+ " remaining",
+						ErrorCode.ORD_003);
+			}
+			item.setShippedQuantity(item.getShippedQuantity() + line.quantity());
+		}
+
+		// Derive status from the aggregate shipped vs ordered quantities.
+		boolean allShipped = items.stream().allMatch(i -> i.getShippedQuantity() >= i.getQuantity());
+		boolean anyShipped = items.stream().anyMatch(i -> i.getShippedQuantity() > 0);
+		String newStatus = allShipped ? "SHIPPED" : (anyShipped ? "PARTIALLY_SHIPPED" : previous);
+
+		order.setStatus(newStatus);
+		Order saved = repo.save(order);
+
+		OrderDTO dto = OrderMapper.toDTO(saved);
+
+		if (!newStatus.equals(previous)) {
+			historyService.record(saved.getId(), saved.getOrderNumber(), previous, newStatus);
+			String eventType = "SHIPPED".equals(newStatus) ? "ORDER_SHIPPED" : "ORDER_PARTIALLY_SHIPPED";
+			publisher.publish("ORDER", saved.getOrderNumber(), eventType, dto);
+		}
+		return dto;
+	}
+
+	/**
+	 * Legacy scalar partial-ship: allocates {@code quantity} units across the
+	 * order's not-yet-fully-shipped items in order, then delegates to
+	 * {@link #fulfill}. Retained for backward compatibility with the
+	 * {@code ?qty=} endpoint; prefer {@link #fulfill} with explicit per-item lines.
+	 */
 	@Transactional
 	public OrderDTO shipPartially(Long id, int quantity) {
 		Order order = repo.findById(id)
 				.orElseThrow(() -> new BusinessException("Order not found with id=" + id, ErrorCode.ORD_001));
-		String previous = order.getStatus();
-		order.setStatus("PARTIALLY_SHIPPED");
-		// logic to adjust shipped quantities
-		Order savedOrder = repo.save(order);
 
-		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), previous, "PARTIALLY_SHIPPED");
+		int remainingToAllocate = quantity;
+		List<FulfillmentLine> lines = new ArrayList<>();
+		for (OrderItem item : order.getItems()) {
+			if (remainingToAllocate <= 0) {
+				break;
+			}
+			int remaining = item.getQuantity() - item.getShippedQuantity();
+			if (remaining <= 0) {
+				continue;
+			}
+			int take = Math.min(remaining, remainingToAllocate);
+			lines.add(new FulfillmentLine(item.getProductCode(), take));
+			remainingToAllocate -= take;
+		}
 
-		OrderDTO dto = OrderMapper.toDTO(savedOrder);
-		publisher.publish("ORDER", savedOrder.getOrderNumber(), "ORDER_PARTIALLY_SHIPPED", dto);
-		return dto;
+		if (lines.isEmpty()) {
+			throw new BusinessException("Nothing left to ship on order " + order.getOrderNumber(), ErrorCode.ORD_003);
+		}
+
+		return self.fulfill(id, lines);
 	}
 
 	/**

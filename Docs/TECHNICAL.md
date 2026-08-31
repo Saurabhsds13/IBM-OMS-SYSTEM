@@ -132,8 +132,16 @@ Messages are JSON, **keyed by `orderNumber`** (guarantees per-order ordering wit
 - `OutboxDispatcher` runs every 10 seconds, marks events published. This is the component that will produce to Kafka (§8).
 
 ### 5.3 Order lifecycle & audit
-- Transitions: intake (`PENDING`), approve (`APPROVED`), partial ship (`PARTIALLY_SHIPPED`),
-  ship (`SHIPPED`), cancel (`CANCELLED`, guarded against shipped/cancelled).
+- Transitions: intake (`PENDING`), approve (`APPROVED`), fulfill (`PARTIALLY_SHIPPED` /
+  `SHIPPED`), cancel (`CANCELLED`, guarded against shipped/cancelled).
+- **Per-item fulfillment** (`POST /api/v1/admin/orders/{id}/fulfill`): ships explicit
+  quantities per line item (`{ lines: [{ productCode, quantity }] }`). Validates the order is
+  APPROVED/PARTIALLY_SHIPPED, each product is on the order, and no item is shipped beyond its
+  ordered quantity (over-ship → `ORD_003` / HTTP 422). Increments `shippedQuantity` per item
+  and **derives** the order status from the aggregate: all items fully shipped → `SHIPPED`,
+  otherwise `PARTIALLY_SHIPPED`. Emits the corresponding event only on an actual status change.
+- The legacy scalar `POST /{id}/partial-ship?qty=` now allocates `qty` across not-yet-shipped
+  items and delegates to the same fulfillment logic (kept for backward compatibility).
 - **Every transition emits a lifecycle event** via the outbox (→ Kafka `oms.orders.status`
   + SSE): `ORDER_PLACED`, `ORDER_APPROVED`, `ORDER_PARTIALLY_SHIPPED`, `ORDER_SHIPPED`,
   `ORDER_CANCELLED`.
@@ -309,7 +317,14 @@ npm install
 npm run dev                     # http://localhost:5173
 ```
 
-For the Kafka integration, additionally run a Kafka broker (e.g. via Docker Compose) reachable at `KAFKA_BOOTSTRAP_SERVERS`.
+For infrastructure (MySQL + Kafka), use the repo-root `docker-compose.yml`:
+
+```bash
+docker compose up -d   # MySQL on :3306 (omsdb), Kafka on :9092, Kafka UI on :8085
+```
+
+A full step-by-step end-to-end run guide (env vars, bootstrap-admin hash, smoke
+test, teardown) is in `Docs/RUN.md`.
 
 ---
 

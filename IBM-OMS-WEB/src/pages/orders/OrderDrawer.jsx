@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ordersApi } from '../../services/endpoints';
 import { errorMessage } from '../../services/api';
-import { StatusBadge, DataTable, Spinner } from '../../components/ui';
+import { StatusBadge, Spinner } from '../../components/ui';
 import RoleGate from '../../auth/RoleGate';
 import { useToast } from '../../components/Toast';
 import { useConfirm } from '../../components/ConfirmDialog';
@@ -16,6 +16,7 @@ export default function OrderDrawer({ orderNumber, onClose, onChanged }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [shipQty, setShipQty] = useState({}); // productCode -> qty to ship now
 
   const load = async () => {
     setLoading(true);
@@ -27,6 +28,7 @@ export default function OrderDrawer({ orderNumber, onClose, onChanged }) {
       if (ord.status === 'fulfilled') setOrder(ord.value);
       else toast.error(errorMessage(ord.reason, 'Failed to load order'));
       if (hist.status === 'fulfilled') setHistory(hist.value || []);
+      setShipQty({});
     } finally {
       setLoading(false);
     }
@@ -64,14 +66,28 @@ export default function OrderDrawer({ orderNumber, onClose, onChanged }) {
     if (ok) runAction(() => ordersApi.cancel(order.id), 'Order cancelled');
   };
 
-  const itemColumns = [
-    { key: 'productCode', header: 'Product' },
-    { key: 'quantity', header: 'Qty' },
-    { key: 'shippedQuantity', header: 'Shipped' },
-  ];
-
   const canApprove = order?.status === 'PENDING';
   const canCancel = order && !['CANCELLED', 'SHIPPED', 'PARTIALLY_SHIPPED'].includes(order.status);
+  const canFulfill = order && ['APPROVED', 'PARTIALLY_SHIPPED'].includes(order.status);
+
+  const remainingFor = (item) => item.quantity - item.shippedQuantity;
+
+  const setQty = (productCode, value, max) => {
+    const n = Math.max(0, Math.min(Number(value) || 0, max));
+    setShipQty((prev) => ({ ...prev, [productCode]: n }));
+  };
+
+  const fulfill = async () => {
+    const lines = (order.items || [])
+      .map((it) => ({ productCode: it.productCode, quantity: shipQty[it.productCode] || 0 }))
+      .filter((l) => l.quantity > 0);
+
+    if (lines.length === 0) {
+      toast.error('Enter a quantity to ship for at least one item');
+      return;
+    }
+    await runAction(() => ordersApi.fulfill(order.id, lines), 'Fulfillment recorded');
+  };
 
   return (
     <div className="drawer-backdrop" onClick={onClose}>
@@ -96,12 +112,57 @@ export default function OrderDrawer({ orderNumber, onClose, onChanged }) {
             </div>
 
             <div style={{ fontSize: 13, fontWeight: 600, margin: '8px 0' }}>Line items</div>
-            <DataTable
-              columns={itemColumns}
-              rows={order.items || []}
-              rowKey={(it, i) => it.id ?? `${it.productCode}-${i}`}
-              empty="No line items."
-            />
+            <div className="table-wrap card">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Ordered</th>
+                    <th>Shipped</th>
+                    <th>Remaining</th>
+                    {canFulfill && <th>Ship now</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(order.items || []).map((it, i) => {
+                    const remaining = remainingFor(it);
+                    return (
+                      <tr key={it.id ?? `${it.productCode}-${i}`}>
+                        <td>{it.productCode}</td>
+                        <td>{it.quantity}</td>
+                        <td>{it.shippedQuantity}</td>
+                        <td>{remaining}</td>
+                        {canFulfill && (
+                          <td>
+                            <input
+                              className="input"
+                              type="number"
+                              min="0"
+                              max={remaining}
+                              style={{ width: 72 }}
+                              disabled={remaining === 0 || busy}
+                              value={shipQty[it.productCode] ?? ''}
+                              onChange={(e) => setQty(it.productCode, e.target.value, remaining)}
+                            />
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {canFulfill && (
+              <div className="row between center" style={{ marginTop: 10 }}>
+                <span className="muted" style={{ fontSize: 12 }}>
+                  Ship remaining units to fulfill the order.
+                </span>
+                <button className="btn btn-primary btn-sm" disabled={busy} onClick={fulfill}>
+                  Ship selected
+                </button>
+              </div>
+            )}
 
             <div style={{ fontSize: 13, fontWeight: 600, margin: '20px 0 8px' }}>Status history</div>
             {history.length === 0 ? (

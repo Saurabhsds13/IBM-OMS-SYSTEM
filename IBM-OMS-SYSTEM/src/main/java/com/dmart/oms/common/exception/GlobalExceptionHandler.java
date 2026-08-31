@@ -63,6 +63,10 @@ public class GlobalExceptionHandler {
 			// Invalid order state transition (already approved / cancelled / shipped)
 			// maps to 409 CONFLICT (Requirements 12.3, 13.2, 13.3).
 			status = HttpStatus.CONFLICT;
+
+		} else if (ex.getErrorCode() == ErrorCode.ORD_003) {
+			// Semantically invalid fulfillment (unknown product / over-ship).
+			status = HttpStatus.UNPROCESSABLE_ENTITY;
 		}
 
 		return ResponseEntity.status(status).body(ErrorResponse.of(ex.getMessage(), ex.getErrorCode().name(),

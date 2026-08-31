@@ -31,6 +31,8 @@ export const ordersApi = {
   cancel: (id) => api.post(`/api/v1/admin/orders/${id}/cancel`).then(unwrap),
   partialShip: (id, qty) =>
     api.post(`/api/v1/admin/orders/${id}/partial-ship?qty=${qty}`).then(unwrap),
+  fulfill: (id, lines) =>
+    api.post(`/api/v1/admin/orders/${id}/fulfill`, { lines }).then(unwrap),
   intake: (payload) =>
     api.post('/api/v1/admin/orders/intake', payload).then(unwrap),
   bulk: (action, orderIds) =>

@@ -19,6 +19,7 @@ import com.dmart.oms.common.exception.BusinessException;
 import com.dmart.oms.common.exception.ErrorCode;
 import com.dmart.oms.order.dto.BulkActionResult;
 import com.dmart.oms.order.dto.BulkOrderActionRequest;
+import com.dmart.oms.order.dto.FulfillmentRequest;
 import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.dto.OrderIntakeRequest;
 import com.dmart.oms.order.dto.OrderIntakeResult;
@@ -148,6 +149,18 @@ public class OrderController {
 		log.info("Partially shipping {} units for order with id={}", qty, id);
 		OrderDTO dto = service.shipPartially(id, qty);
 		return ResponseEntity.ok(ApiResponse.success(dto, "Order partially shipped"));
+	}
+
+	@Operation(summary = "Fulfill specific quantities per line item (derives SHIPPED / PARTIALLY_SHIPPED)")
+	@PostMapping("/{id}/fulfill")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
+	public ResponseEntity<ApiResponse<OrderDTO>> fulfill(@PathVariable Long id,
+			@Valid @RequestBody FulfillmentRequest request) {
+
+		log.info("Fulfilling {} line(s) for order id={}", request.lines().size(), id);
+		OrderDTO dto = service.fulfill(id, request.lines());
+		String msg = "SHIPPED".equals(dto.status()) ? "Order fully shipped" : "Order partially shipped";
+		return ResponseEntity.ok(ApiResponse.success(dto, msg));
 	}
 
 }
