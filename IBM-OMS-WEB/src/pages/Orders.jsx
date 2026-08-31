@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ordersApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
 import { PageHeader, DataTable, StatusBadge, Spinner } from '../components/ui';
 import RoleGate from '../auth/RoleGate';
+import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
+import { exportCsv } from '../services/csv';
 import IntakeModal from './orders/IntakeModal';
 import OrderDrawer from './orders/OrderDrawer';
 
@@ -14,11 +16,16 @@ const STATUSES = ['PENDING', 'APPROVED', 'PARTIALLY_SHIPPED', 'SHIPPED', 'CANCEL
 export default function Orders() {
   const toast = useToast();
   const confirm = useConfirm();
+  const { hasRole } = useAuth();
+  const canWrite = hasRole(WRITE_ROLES);
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [showIntake, setShowIntake] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [selectedIds, setSelectedIds] = useState(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
@@ -27,6 +34,7 @@ export default function Orders() {
     setLoading(true);
     try {
       setOrders((await ordersApi.list(filters)) || []);
+      setSelectedIds(new Set());
     } catch (err) {
       toast.error(errorMessage(err, 'Failed to load orders'));
     } finally {
@@ -70,48 +78,120 @@ export default function Orders() {
     if (ok) act(() => ordersApi.cancel(o.id), o.id, 'Order cancelled');
   };
 
-  const columns = [
-    {
-      key: 'orderNumber',
-      header: 'Order #',
-      render: (o) => (
-        <button className="link-btn" onClick={() => setSelected(o.orderNumber)}>
-          {o.orderNumber}
-        </button>
-      ),
-    },
-    { key: 'status', header: 'Status', render: (o) => <StatusBadge status={o.status} /> },
-    { key: 'items', header: 'Items', render: (o) => (o.items ? o.items.length : 0) },
-    {
-      key: 'createdAt',
-      header: 'Created',
-      render: (o) => (o.createdAt ? new Date(o.createdAt).toLocaleString() : '—'),
-    },
-    {
-      key: 'actions',
-      header: '',
-      render: (o) => (
-        <RoleGate roles={WRITE_ROLES}>
-          <div className="row gap-8">
-            <button
-              className="btn btn-sm"
-              disabled={busyId === o.id || o.status !== 'PENDING'}
-              onClick={() => act(() => ordersApi.approve(o.id), o.id, 'Order approved')}
-            >
-              Approve
-            </button>
-            <button
-              className="btn btn-sm btn-danger"
-              disabled={busyId === o.id || ['CANCELLED', 'SHIPPED', 'PARTIALLY_SHIPPED'].includes(o.status)}
-              onClick={() => confirmCancel(o)}
-            >
-              Cancel
-            </button>
-          </div>
-        </RoleGate>
-      ),
-    },
-  ];
+  // --- Selection ---
+  const toggleOne = (id) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const allSelected = orders.length > 0 && orders.every((o) => selectedIds.has(o.id));
+  const toggleAll = () =>
+    setSelectedIds(allSelected ? new Set() : new Set(orders.map((o) => o.id)));
+
+  const selectedCount = selectedIds.size;
+
+  const runBulk = async (action) => {
+    const ids = [...selectedIds];
+    const ok = await confirm({
+      title: `${action === 'APPROVE' ? 'Approve' : 'Cancel'} ${ids.length} orders?`,
+      message: `This will attempt to ${action.toLowerCase()} ${ids.length} selected order(s). Orders in an invalid state are skipped.`,
+      confirmLabel: action === 'APPROVE' ? 'Approve all' : 'Cancel all',
+      danger: action === 'CANCEL',
+    });
+    if (!ok) return;
+
+    setBulkBusy(true);
+    try {
+      const result = await ordersApi.bulk(action, ids);
+      if (result.failed === 0) {
+        toast.success(`${result.succeeded}/${result.total} succeeded`);
+      } else {
+        toast.info(`${result.succeeded}/${result.total} succeeded, ${result.failed} skipped`);
+      }
+      await applyFilters();
+    } catch (err) {
+      toast.error(errorMessage(err, 'Bulk action failed'));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const exportRows = () =>
+    exportCsv(
+      'orders',
+      [
+        { key: 'orderNumber', header: 'Order Number' },
+        { key: 'status', header: 'Status' },
+        { key: 'items', header: 'Item Count', value: (o) => (o.items ? o.items.length : 0) },
+        { key: 'createdAt', header: 'Created At' },
+      ],
+      orders
+    );
+
+  const columns = useMemo(() => {
+    const base = [];
+    if (canWrite) {
+      base.push({
+        key: 'select',
+        header: <input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all" />,
+        width: '36px',
+        render: (o) => (
+          <input
+            type="checkbox"
+            checked={selectedIds.has(o.id)}
+            onChange={() => toggleOne(o.id)}
+            aria-label={`Select ${o.orderNumber}`}
+          />
+        ),
+      });
+    }
+    base.push(
+      {
+        key: 'orderNumber',
+        header: 'Order #',
+        render: (o) => (
+          <button className="link-btn" onClick={() => setSelected(o.orderNumber)}>
+            {o.orderNumber}
+          </button>
+        ),
+      },
+      { key: 'status', header: 'Status', render: (o) => <StatusBadge status={o.status} /> },
+      { key: 'items', header: 'Items', render: (o) => (o.items ? o.items.length : 0) },
+      {
+        key: 'createdAt',
+        header: 'Created',
+        render: (o) => (o.createdAt ? new Date(o.createdAt).toLocaleString() : '—'),
+      },
+      {
+        key: 'actions',
+        header: '',
+        render: (o) => (
+          <RoleGate roles={WRITE_ROLES}>
+            <div className="row gap-8">
+              <button
+                className="btn btn-sm"
+                disabled={busyId === o.id || o.status !== 'PENDING'}
+                onClick={() => act(() => ordersApi.approve(o.id), o.id, 'Order approved')}
+              >
+                Approve
+              </button>
+              <button
+                className="btn btn-sm btn-danger"
+                disabled={busyId === o.id || ['CANCELLED', 'SHIPPED', 'PARTIALLY_SHIPPED'].includes(o.status)}
+                onClick={() => confirmCancel(o)}
+              >
+                Cancel
+              </button>
+            </div>
+          </RoleGate>
+        ),
+      }
+    );
+    return base;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canWrite, allSelected, selectedIds, busyId]);
 
   return (
     <>
@@ -119,11 +199,16 @@ export default function Orders() {
         title="Orders"
         subtitle="Review and manage the order lifecycle."
         actions={
-          <RoleGate roles={WRITE_ROLES}>
-            <button className="btn btn-primary" onClick={() => setShowIntake(true)}>
-              + Intake order
+          <>
+            <button className="btn" onClick={exportRows} disabled={orders.length === 0}>
+              Export CSV
             </button>
-          </RoleGate>
+            <RoleGate roles={WRITE_ROLES}>
+              <button className="btn btn-primary" onClick={() => setShowIntake(true)}>
+                + Intake order
+              </button>
+            </RoleGate>
+          </>
         }
       />
 
@@ -154,6 +239,23 @@ export default function Orders() {
         </div>
       </div>
 
+      {canWrite && selectedCount > 0 && (
+        <div className="bulk-bar card">
+          <span>{selectedCount} selected</span>
+          <div className="row gap-8">
+            <button className="btn btn-sm btn-primary" disabled={bulkBusy} onClick={() => runBulk('APPROVE')}>
+              Approve selected
+            </button>
+            <button className="btn btn-sm btn-danger" disabled={bulkBusy} onClick={() => runBulk('CANCEL')}>
+              Cancel selected
+            </button>
+            <button className="btn btn-sm" disabled={bulkBusy} onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <Spinner label="Loading orders…" />
       ) : (
@@ -171,11 +273,7 @@ export default function Orders() {
       )}
 
       {selected && (
-        <OrderDrawer
-          orderNumber={selected}
-          onClose={() => setSelected(null)}
-          onChanged={applyFilters}
-        />
+        <OrderDrawer orderNumber={selected} onClose={() => setSelected(null)} onChanged={applyFilters} />
       )}
     </>
   );

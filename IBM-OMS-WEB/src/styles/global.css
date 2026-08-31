@@ -34,6 +34,32 @@
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+[data-theme='dark'] {
+  --bg: #0f1420;
+  --surface: #181f2e;
+  --border: #2a3244;
+  --text: #e6e9ef;
+  --text-muted: #9aa4b5;
+  --text-subtle: #6b7688;
+
+  --primary: #4f7bff;
+  --primary-hover: #3f66e0;
+  --primary-soft: #1e2a4a;
+
+  --green: #34d399;
+  --green-soft: #10291f;
+  --amber: #fbbf24;
+  --amber-soft: #2a2110;
+  --red: #f87171;
+  --red-soft: #2a1414;
+  --blue: #60a5fa;
+  --blue-soft: #12233f;
+  --gray-soft: #232b3b;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -129,6 +155,19 @@ button {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
+}
+
+/* Bulk action bar */
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--primary);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* Link-style button */

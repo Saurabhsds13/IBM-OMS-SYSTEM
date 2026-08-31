@@ -1,10 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { NAV } from '../auth/permissions';
+import { useTheme } from '../theme/ThemeContext';
 import './Layout.css';
 
 export default function Layout() {
   const { user, roles, hasRole, logout } = useAuth();
+  const { theme, toggle } = useTheme();
   const visibleNav = NAV.filter((item) => hasRole(item.roles));
 
   return (
@@ -33,6 +35,9 @@ export default function Layout() {
         <header className="topbar">
           <div className="topbar-spacer" />
           <div className="topbar-user">
+            <button className="btn btn-sm" onClick={toggle} title="Toggle theme" aria-label="Toggle theme">
+              {theme === 'dark' ? 'Light' : 'Dark'} mode
+            </button>
             <div className="user-meta">
               <div className="user-name">{user?.username}</div>
               <div className="user-roles">{roles.join(', ') || 'No role'}</div>

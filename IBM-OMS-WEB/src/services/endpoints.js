@@ -33,6 +33,8 @@ export const ordersApi = {
     api.post(`/api/v1/admin/orders/${id}/partial-ship?qty=${qty}`).then(unwrap),
   intake: (payload) =>
     api.post('/api/v1/admin/orders/intake', payload).then(unwrap),
+  bulk: (action, orderIds) =>
+    api.post('/api/v1/admin/orders/bulk', { action, orderIds }).then(unwrap),
 };
 
 // --- Inventory ---

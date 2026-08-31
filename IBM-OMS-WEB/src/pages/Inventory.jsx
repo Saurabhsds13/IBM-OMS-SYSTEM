@@ -4,6 +4,7 @@ import { errorMessage } from '../services/api';
 import { PageHeader, DataTable, Spinner } from '../components/ui';
 import RoleGate from '../auth/RoleGate';
 import { useToast } from '../components/Toast';
+import { exportCsv } from '../services/csv';
 
 const WRITE_ROLES = ['OPS_MANAGER', 'ADMIN'];
 
@@ -70,9 +71,30 @@ export default function Inventory() {
     },
   ];
 
+  const exportRows = () =>
+    exportCsv(
+      'inventory',
+      [
+        { key: 'productCode', header: 'Product Code' },
+        { key: 'availableQty', header: 'Available' },
+        { key: 'reservedQty', header: 'Reserved' },
+        { key: 'vendorName', header: 'Vendor' },
+        { key: 'location', header: 'Location' },
+      ],
+      stock
+    );
+
   return (
     <>
-      <PageHeader title="Inventory" subtitle="Stock levels and reservations." />
+      <PageHeader
+        title="Inventory"
+        subtitle="Stock levels and reservations."
+        actions={
+          <button className="btn" onClick={exportRows} disabled={stock.length === 0}>
+            Export CSV
+          </button>
+        }
+      />
       {loading ? (
         <Spinner label="Loading inventory…" />
       ) : (

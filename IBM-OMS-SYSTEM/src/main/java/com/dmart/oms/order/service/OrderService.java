@@ -13,6 +13,9 @@ import com.dmart.oms.common.exception.BusinessException;
 import com.dmart.oms.common.exception.ErrorCode;
 import com.dmart.oms.common.exception.ResourceNotFoundException;
 import com.dmart.oms.common.utils.OrderMapper;
+import com.dmart.oms.order.dto.BulkActionResult;
+import com.dmart.oms.order.dto.BulkOrderActionRequest;
+import com.dmart.oms.order.dto.BulkOrderActionRequest.BulkAction;
 import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.dto.OrderIntakeRequest;
 import com.dmart.oms.order.dto.OrderIntakeResult;
@@ -27,6 +30,14 @@ public class OrderService {
 	private final OrderRepository repo;
 	private final OutboxEventPublisher publisher;
 	private final OrderHistoryService historyService;
+
+	/**
+	 * Self-reference so bulk item calls go through the Spring proxy and each runs
+	 * in its own transaction (a failure on one order must not roll back others).
+	 */
+	@org.springframework.beans.factory.annotation.Autowired
+	@org.springframework.context.annotation.Lazy
+	private OrderService self;
 
 	public OrderService(OrderRepository repo, OutboxEventPublisher publisher, OrderHistoryService historyService) {
 		this.repo = repo;
@@ -157,6 +168,33 @@ public class OrderService {
 		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), status, "CANCELLED");
 
 		return OrderMapper.toDTO(savedOrder);
+	}
+
+	/**
+	 * Applies the same action to many orders. Each order is processed in its own
+	 * transaction via the Spring proxy, so a failure on one (e.g. an invalid state
+	 * transition) is reported per-order and does not roll back the others.
+	 */
+	public BulkActionResult bulkAction(BulkOrderActionRequest request) {
+		List<BulkActionResult.Item> items = new ArrayList<>();
+		int succeeded = 0;
+
+		for (Long id : request.orderIds()) {
+			try {
+				if (request.action() == BulkAction.APPROVE) {
+					self.approveOrder(id);
+				} else {
+					self.cancelOrder(id);
+				}
+				items.add(new BulkActionResult.Item(id, true, null));
+				succeeded++;
+			} catch (RuntimeException ex) {
+				items.add(new BulkActionResult.Item(id, false, ex.getMessage()));
+			}
+		}
+
+		int total = request.orderIds().size();
+		return new BulkActionResult(total, succeeded, total - succeeded, items);
 	}
 
 	public Optional<OrderDTO> getOrderById(Long id) {

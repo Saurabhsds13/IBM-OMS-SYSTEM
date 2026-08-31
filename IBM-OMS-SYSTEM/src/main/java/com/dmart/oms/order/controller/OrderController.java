@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.dmart.oms.common.dto.ApiResponse;
 import com.dmart.oms.common.exception.BusinessException;
 import com.dmart.oms.common.exception.ErrorCode;
+import com.dmart.oms.order.dto.BulkActionResult;
+import com.dmart.oms.order.dto.BulkOrderActionRequest;
 import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.dto.OrderIntakeRequest;
 import com.dmart.oms.order.dto.OrderIntakeResult;
@@ -63,6 +65,17 @@ public class OrderController {
 					.body(ApiResponse.success(result.order(), "Order ingested successfully"));
 		}
 		return ResponseEntity.ok(ApiResponse.success(result.order(), "Order already exists; no changes made"));
+	}
+
+	@Operation(summary = "Apply an action (APPROVE/CANCEL) to multiple orders; per-order results")
+	@PostMapping("/bulk")
+	@PreAuthorize("hasAnyRole('OPS_MANAGER','ADMIN')")
+	public ResponseEntity<ApiResponse<BulkActionResult>> bulkAction(
+			@Valid @RequestBody BulkOrderActionRequest request) {
+		log.info("Bulk {} on {} orders", request.action(), request.orderIds().size());
+		BulkActionResult result = service.bulkAction(request);
+		return ResponseEntity.ok(ApiResponse.success(result,
+				String.format("%d/%d succeeded", result.succeeded(), result.total())));
 	}
 
 	@Operation(summary = "List orders, optionally filtered by status and/or order-number substring")

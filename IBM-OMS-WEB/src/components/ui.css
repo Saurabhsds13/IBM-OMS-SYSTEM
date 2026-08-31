@@ -60,7 +60,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
-  background: #fafbfc;
+  background: var(--gray-soft);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
@@ -70,7 +70,7 @@
   color: var(--text);
 }
 .data-table tbody tr:last-child td { border-bottom: none; }
-.data-table tbody tr:hover { background: #fafbfc; }
+.data-table tbody tr:hover { background: var(--gray-soft); }
 
 /* Spinner / empty */
 .spinner-wrap { display: flex; align-items: center; gap: 10px; padding: 40px; justify-content: center; }
