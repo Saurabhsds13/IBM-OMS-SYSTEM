@@ -14,4 +14,6 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
 	List<OutboxEvent> findTop100ByStatusOrderByCreatedAt(String status);
 
 	List<OutboxEvent> findTop10ByStatusOrderByCreatedAtAsc(String status);
+
+	long countByStatus(String status);
 }

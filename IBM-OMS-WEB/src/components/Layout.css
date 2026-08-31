@@ -1,0 +1,85 @@
+.layout { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  background: #101828;
+  color: #cfd4dc;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.brand-mark {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+.brand-text { font-weight: 600; color: #fff; font-size: 15px; }
+
+.nav { display: flex; flex-direction: column; padding: 12px 10px; gap: 2px; flex: 1; }
+.nav-item {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #cfd4dc;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-item:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.nav-item.active { background: var(--primary); color: #fff; }
+
+.sidebar-foot {
+  padding: 16px 20px;
+  font-size: 11px;
+  color: #667085;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Main */
+.main { flex: 1; margin-left: var(--sidebar-w); display: flex; flex-direction: column; }
+.topbar {
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-spacer { flex: 1; }
+.topbar-user { display: flex; align-items: center; gap: 14px; }
+.user-meta { text-align: right; }
+.user-name { font-weight: 600; font-size: 13px; }
+.user-roles { font-size: 11px; color: var(--text-muted); }
+
+.content { padding: 24px; flex: 1; }
+
+/* Grid helpers used by pages */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.grid-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}

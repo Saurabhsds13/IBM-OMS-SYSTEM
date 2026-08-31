@@ -26,14 +26,41 @@ public class OrderService {
 
 	private final OrderRepository repo;
 	private final OutboxEventPublisher publisher;
+	private final OrderHistoryService historyService;
 
-	public OrderService(OrderRepository repo, OutboxEventPublisher publisher) {
+	public OrderService(OrderRepository repo, OutboxEventPublisher publisher, OrderHistoryService historyService) {
 		this.repo = repo;
 		this.publisher = publisher;
+		this.historyService = historyService;
 	}
 
 	public List<OrderDTO> getAllOrders() {
 		return repo.findAll().stream().map(OrderMapper::toDTO).toList();
+	}
+
+	/**
+	 * Returns orders optionally filtered by status and/or a case-insensitive
+	 * order-number substring. Blank filters are ignored.
+	 */
+	public List<OrderDTO> searchOrders(String status, String orderNumber) {
+		boolean hasStatus = status != null && !status.isBlank();
+		boolean hasNumber = orderNumber != null && !orderNumber.isBlank();
+
+		List<Order> results;
+		if (hasStatus && hasNumber) {
+			results = repo.findByStatusAndOrderNumberContainingIgnoreCase(status, orderNumber);
+		} else if (hasStatus) {
+			results = repo.findByStatus(status);
+		} else if (hasNumber) {
+			results = repo.findByOrderNumberContainingIgnoreCase(orderNumber);
+		} else {
+			results = repo.findAll();
+		}
+		return results.stream().map(OrderMapper::toDTO).toList();
+	}
+
+	public Optional<OrderDTO> getOrderByNumber(String orderNumber) {
+		return repo.findByOrderNumber(orderNumber).map(OrderMapper::toDTO);
 	}
 
 	/**
@@ -70,6 +97,9 @@ public class OrderService {
 		Order saved = repo.save(order);
 		OrderDTO dto = OrderMapper.toDTO(saved);
 
+		// Audit: initial creation transition (null -> PENDING).
+		historyService.record(saved.getId(), saved.getOrderNumber(), null, "PENDING");
+
 		// Single ORDER_PLACED event, atomic with the order insert.
 		publisher.publish("ORDER", saved.getOrderNumber(), "ORDER_PLACED", dto);
 
@@ -86,8 +116,12 @@ public class OrderService {
 			throw new BusinessException("Order is already approved", ErrorCode.ORD_002);
 		}
 
+		String previous = order.getStatus();
 		order.setStatus("APPROVED");
 		repo.save(order);
+
+		// Audit the transition within the same transaction.
+		historyService.record(order.getId(), order.getOrderNumber(), previous, "APPROVED");
 
 		OrderDTO dto = OrderMapper.toDTO(order);
 
@@ -120,6 +154,8 @@ public class OrderService {
 		order.setStatus("CANCELLED");
 		Order savedOrder = repo.save(order);
 
+		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), status, "CANCELLED");
+
 		return OrderMapper.toDTO(savedOrder);
 	}
 
@@ -128,11 +164,16 @@ public class OrderService {
 	}
 
 	// Unique feature: Partial shipment
+	@Transactional
 	public OrderDTO shipPartially(Long id, int quantity) {
-		Order order = repo.findById(id).orElseThrow();
+		Order order = repo.findById(id)
+				.orElseThrow(() -> new BusinessException("Order not found with id=" + id, ErrorCode.ORD_001));
+		String previous = order.getStatus();
 		order.setStatus("PARTIALLY_SHIPPED");
 		// logic to adjust shipped quantities
 		Order savedOrder = repo.save(order);
+
+		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), previous, "PARTIALLY_SHIPPED");
 
 		return OrderMapper.toDTO(savedOrder);
 	}

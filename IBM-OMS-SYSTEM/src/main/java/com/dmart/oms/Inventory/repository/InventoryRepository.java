@@ -22,4 +22,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 	Optional<Inventory> findByProductCodeAndVendorName(String productCode, String vendorName);
 
 	Optional<Inventory> findByProductCode(String productCode);
+
+	/** Number of SKUs whose available quantity is at or below the threshold. */
+	long countByAvailableQtyLessThanEqual(int threshold);
+
+	java.util.List<Inventory> findByAvailableQtyLessThanEqual(int threshold);
 }

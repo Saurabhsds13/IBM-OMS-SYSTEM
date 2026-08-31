@@ -20,6 +20,8 @@ import com.dmart.oms.common.exception.ErrorCode;
 import com.dmart.oms.order.dto.OrderDTO;
 import com.dmart.oms.order.dto.OrderIntakeRequest;
 import com.dmart.oms.order.dto.OrderIntakeResult;
+import com.dmart.oms.order.dto.OrderStatusHistoryDTO;
+import com.dmart.oms.order.service.OrderHistoryService;
 import com.dmart.oms.order.service.OrderService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,9 +37,11 @@ public class OrderController {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 	private final OrderService service;
+	private final OrderHistoryService historyService;
 
-	public OrderController(OrderService service) {
+	public OrderController(OrderService service, OrderHistoryService historyService) {
 		this.service = service;
+		this.historyService = historyService;
 	}
 
 	/**
@@ -61,18 +65,37 @@ public class OrderController {
 		return ResponseEntity.ok(ApiResponse.success(result.order(), "Order already exists; no changes made"));
 	}
 
+	@Operation(summary = "List orders, optionally filtered by status and/or order-number substring")
 	@GetMapping
 	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
-	public ResponseEntity<ApiResponse<List<OrderDTO>>> getAllOrders() {
-		log.info("Fetching all orders");
+	public ResponseEntity<ApiResponse<List<OrderDTO>>> getAllOrders(
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String orderNumber) {
+		log.info("Fetching orders (status={}, orderNumber={})", status, orderNumber);
 
-		List<OrderDTO> orders = service.getAllOrders();
+		List<OrderDTO> orders = service.searchOrders(status, orderNumber);
 
 		if (orders.isEmpty()) {
-			log.info("No orders found in the system");
 			return ResponseEntity.ok(ApiResponse.success(orders, "No orders found"));
 		}
 		return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
+	}
+
+	@Operation(summary = "Fetch a single order (with items) by its order number")
+	@GetMapping("/by-number/{orderNumber}")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
+	public ResponseEntity<ApiResponse<OrderDTO>> getOrderByNumber(@PathVariable String orderNumber) {
+		OrderDTO order = service.getOrderByNumber(orderNumber)
+				.orElseThrow(() -> new BusinessException("Order " + orderNumber + " not found", ErrorCode.ORD_001));
+		return ResponseEntity.ok(ApiResponse.success(order, "Order retrieved successfully"));
+	}
+
+	@Operation(summary = "Status transition audit trail for an order")
+	@GetMapping("/by-number/{orderNumber}/history")
+	@PreAuthorize("hasAnyRole('VIEWER','OPS_MANAGER','ADMIN')")
+	public ResponseEntity<ApiResponse<List<OrderStatusHistoryDTO>>> getOrderHistory(@PathVariable String orderNumber) {
+		List<OrderStatusHistoryDTO> history = historyService.getHistory(orderNumber);
+		return ResponseEntity.ok(ApiResponse.success(history, "Order history retrieved"));
 	}
 
 	@GetMapping("/{id}")
