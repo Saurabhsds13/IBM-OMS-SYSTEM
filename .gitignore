@@ -94,5 +94,7 @@ application-*.properties
 # --------------------------------------------
 # Kiro
 # --------------------------------------------
+# Ignore Kiro-internal metadata only. Spec documents (e.g. requirements.md,
+# design.md, tasks.md) under .kiro/specs/ are kept in version control.
 .config.kiro
 **/.config.kiro
