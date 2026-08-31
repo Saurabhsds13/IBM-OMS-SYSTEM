@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ordersApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
-import { PageHeader, DataTable, StatusBadge, Spinner } from '../components/ui';
+import { PageHeader, DataTable, StatusBadge, SkeletonTable } from '../components/ui';
 import RoleGate from '../auth/RoleGate';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
+import { useLiveEvents } from '../live/LiveEventsContext';
 import { exportCsv } from '../services/csv';
-import { subscribeOrderStream } from '../services/orderStream';
 import IntakeModal from './orders/IntakeModal';
 import OrderDrawer from './orders/OrderDrawer';
 
@@ -48,18 +48,17 @@ export default function Orders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Live updates: subscribe once to the SSE stream. On each order-status event,
+  // Live updates: react to the shared SSE stream. On each order-status event,
   // toast it and refresh the current view.
-  const [live, setLive] = useState(false);
+  const { onEvent, connected } = useLiveEvents();
   useEffect(() => {
-    const unsubscribe = subscribeOrderStream((event) => {
-      setLive(true);
+    const off = onEvent((event) => {
       toast.info(`${event.orderNumber}: ${event.status}`);
       load({ status, orderNumber: search.trim() });
     });
-    return unsubscribe;
+    return off;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, search]);
+  }, [status, search, onEvent]);
 
   const applyFilters = () => load({ status, orderNumber: search.trim() });
   const clearFilters = () => {
@@ -214,7 +213,7 @@ export default function Orders() {
         subtitle="Review and manage the order lifecycle."
         actions={
           <>
-            <span className={`live-dot ${live ? 'on' : ''}`} title={live ? 'Live updates active' : 'Connecting…'}>
+            <span className={`live-dot ${connected ? 'on' : ''}`} title={connected ? 'Live updates active' : 'Connecting…'}>
               ● Live
             </span>
             <button className="btn" onClick={exportRows} disabled={orders.length === 0}>
@@ -274,7 +273,7 @@ export default function Orders() {
       )}
 
       {loading ? (
-        <Spinner label="Loading orders…" />
+        <SkeletonTable columns={canWrite ? 6 : 5} rows={6} />
       ) : (
         <DataTable columns={columns} rows={orders} rowKey={(o) => o.id ?? o.orderNumber} empty="No orders match." />
       )}

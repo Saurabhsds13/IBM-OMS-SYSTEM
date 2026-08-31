@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dashboardApi, analyticsApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
-import { PageHeader, SummaryCard, Spinner, StatusBadge } from '../components/ui';
+import { PageHeader, SummaryCard, SkeletonCards, StatusBadge } from '../components/ui';
 import ChartCard from '../components/ChartCard';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/Toast';
+import { useLiveEvents } from '../live/LiveEventsContext';
 
 function isoDaysAgo(n) {
   const d = new Date();
@@ -18,6 +19,17 @@ export default function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { onEvent, connected } = useLiveEvents();
+
+  // Refresh just the summary (used on load and on each live event).
+  const loadSummary = useCallback(async () => {
+    try {
+      setSummary(await dashboardApi.summary());
+    } catch (err) {
+      // Non-fatal on live refresh; surface only on initial failure elsewhere.
+      console.debug('summary refresh failed', errorMessage(err));
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -38,7 +50,20 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) return <Spinner label="Loading dashboard…" />;
+  // Live: on any order-status event, refresh the summary so counts stay current.
+  useEffect(() => {
+    const off = onEvent(() => loadSummary());
+    return off;
+  }, [onEvent, loadSummary]);
+
+  if (loading) {
+    return (
+      <>
+        <PageHeader title="Dashboard" subtitle="Loading operational overview…" />
+        <SkeletonCards count={4} />
+      </>
+    );
+  }
 
   const byStatus = summary?.ordersByStatus || {};
   const kpi = summary?.latestKpi;
@@ -74,6 +99,11 @@ export default function Dashboard() {
       <PageHeader
         title={`Welcome, ${user?.username || 'admin'}`}
         subtitle="Operational overview across orders, inventory, and sales."
+        actions={
+          <span className={`live-dot ${connected ? 'on' : ''}`} title={connected ? 'Live updates active' : 'Connecting…'}>
+            ● Live
+          </span>
+        }
       />
 
       <div className="grid-cards">

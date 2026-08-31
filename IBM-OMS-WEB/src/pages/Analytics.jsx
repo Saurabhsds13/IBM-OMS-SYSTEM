@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { analyticsApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
-import { PageHeader, SummaryCard, Spinner } from '../components/ui';
+import { PageHeader, SummaryCard, SkeletonCards } from '../components/ui';
 import ChartCard from '../components/ChartCard';
 import { useToast } from '../components/Toast';
 
@@ -33,7 +33,14 @@ export default function Analytics() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (loading) return <Spinner label="Loading analytics…" />;
+  if (loading) {
+    return (
+      <>
+        <PageHeader title="Analytics" subtitle="Loading business KPIs…" />
+        <SkeletonCards count={4} />
+      </>
+    );
+  }
 
   const revenueChart = {
     labels: series.map((p) => p.date),

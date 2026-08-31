@@ -51,6 +51,56 @@ export function Spinner({ label = 'Loading…' }) {
   );
 }
 
+/** A shimmering placeholder block. */
+export function Skeleton({ width = '100%', height = 16, radius = 6, style }) {
+  return <span className="skeleton" style={{ width, height, borderRadius: radius, ...style }} />;
+}
+
+/** Skeleton grid of summary cards for dashboard-style pages. */
+export function SkeletonCards({ count = 4 }) {
+  return (
+    <div className="grid-cards">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="summary-card card">
+          <Skeleton width="50%" height={11} />
+          <Skeleton width="70%" height={26} style={{ marginTop: 12 }} />
+          <Skeleton width="40%" height={11} style={{ marginTop: 8 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Skeleton table matching the DataTable layout. */
+export function SkeletonTable({ columns = 5, rows = 6 }) {
+  return (
+    <div className="table-wrap card">
+      <table className="data-table">
+        <thead>
+          <tr>
+            {Array.from({ length: columns }).map((_, i) => (
+              <th key={i}>
+                <Skeleton width="60%" height={10} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: rows }).map((_, r) => (
+            <tr key={r}>
+              {Array.from({ length: columns }).map((_, c) => (
+                <td key={c}>
+                  <Skeleton width={c === 0 ? '55%' : '75%'} height={12} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function EmptyState({ message = 'No data yet.' }) {
   return <div className="empty-state muted">{message}</div>;
 }

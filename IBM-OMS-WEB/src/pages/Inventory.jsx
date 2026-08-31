@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { inventoryApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
-import { PageHeader, DataTable, Spinner } from '../components/ui';
+import { PageHeader, DataTable, SkeletonTable } from '../components/ui';
 import RoleGate from '../auth/RoleGate';
 import { useToast } from '../components/Toast';
 import { exportCsv } from '../services/csv';
@@ -96,7 +96,7 @@ export default function Inventory() {
         }
       />
       {loading ? (
-        <Spinner label="Loading inventory…" />
+        <SkeletonTable columns={6} rows={6} />
       ) : (
         <DataTable columns={columns} rows={stock} rowKey={(r) => r.id ?? r.productCode} empty="No inventory records." />
       )}

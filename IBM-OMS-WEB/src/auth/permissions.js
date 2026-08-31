@@ -11,14 +11,14 @@ export const ROLES = {
  * would get a 403 for.
  */
 export const NAV = [
-  { key: 'dashboard', label: 'Dashboard', path: '/', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
-  { key: 'orders', label: 'Orders', path: '/orders', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
-  { key: 'inventory', label: 'Inventory', path: '/inventory', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
-  { key: 'shipping', label: 'Shipping', path: '/shipping', roles: ['ADMIN', 'OPS_MANAGER'] },
-  { key: 'analytics', label: 'Analytics', path: '/analytics', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
-  { key: 'payments', label: 'Payments', path: '/payments', roles: ['ADMIN'] },
-  { key: 'notifications', label: 'Notifications', path: '/notifications', roles: ['ADMIN'] },
-  { key: 'users', label: 'Users', path: '/users', roles: ['ADMIN'] },
+  { key: 'dashboard', label: 'Dashboard', path: '/', icon: 'LayoutDashboard', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
+  { key: 'orders', label: 'Orders', path: '/orders', icon: 'ShoppingCart', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
+  { key: 'inventory', label: 'Inventory', path: '/inventory', icon: 'Boxes', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
+  { key: 'shipping', label: 'Shipping', path: '/shipping', icon: 'Truck', roles: ['ADMIN', 'OPS_MANAGER'] },
+  { key: 'analytics', label: 'Analytics', path: '/analytics', icon: 'BarChart3', roles: ['ADMIN', 'OPS_MANAGER', 'VIEWER'] },
+  { key: 'payments', label: 'Payments', path: '/payments', icon: 'CreditCard', roles: ['ADMIN'] },
+  { key: 'notifications', label: 'Notifications', path: '/notifications', icon: 'Bell', roles: ['ADMIN'] },
+  { key: 'users', label: 'Users', path: '/users', icon: 'Users', roles: ['ADMIN'] },
 ];
 
 export function hasAnyRole(userRoles = [], allowed = []) {

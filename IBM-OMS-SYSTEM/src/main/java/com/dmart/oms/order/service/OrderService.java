@@ -167,7 +167,10 @@ public class OrderService {
 
 		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), status, "CANCELLED");
 
-		return OrderMapper.toDTO(savedOrder);
+		OrderDTO dto = OrderMapper.toDTO(savedOrder);
+		// Emit lifecycle event (outbox -> Kafka + SSE).
+		publisher.publish("ORDER", savedOrder.getOrderNumber(), "ORDER_CANCELLED", dto);
+		return dto;
 	}
 
 	/**
@@ -213,6 +216,37 @@ public class OrderService {
 
 		historyService.record(savedOrder.getId(), savedOrder.getOrderNumber(), previous, "PARTIALLY_SHIPPED");
 
-		return OrderMapper.toDTO(savedOrder);
+		OrderDTO dto = OrderMapper.toDTO(savedOrder);
+		publisher.publish("ORDER", savedOrder.getOrderNumber(), "ORDER_PARTIALLY_SHIPPED", dto);
+		return dto;
+	}
+
+	/**
+	 * Marks an order SHIPPED (terminal fulfillment state) by order number. Invoked
+	 * from the shipping module when a shipment is created/delivered. Idempotent:
+	 * an already-SHIPPED or CANCELLED order is left unchanged and no duplicate
+	 * event is emitted.
+	 */
+	@Transactional
+	public Optional<OrderDTO> markShipped(String orderNumber) {
+		Order order = repo.findByOrderNumber(orderNumber).orElse(null);
+		if (order == null) {
+			return Optional.empty();
+		}
+
+		String previous = order.getStatus();
+		if ("SHIPPED".equals(previous) || "CANCELLED".equals(previous)) {
+			// No-op for terminal states; keep it idempotent.
+			return Optional.of(OrderMapper.toDTO(order));
+		}
+
+		order.setStatus("SHIPPED");
+		Order saved = repo.save(order);
+
+		historyService.record(saved.getId(), saved.getOrderNumber(), previous, "SHIPPED");
+
+		OrderDTO dto = OrderMapper.toDTO(saved);
+		publisher.publish("ORDER", saved.getOrderNumber(), "ORDER_SHIPPED", dto);
+		return Optional.of(dto);
 	}
 }

@@ -132,9 +132,26 @@ Messages are JSON, **keyed by `orderNumber`** (guarantees per-order ordering wit
 - `OutboxDispatcher` runs every 10 seconds, marks events published. This is the component that will produce to Kafka (§8).
 
 ### 5.3 Order lifecycle & audit
-- Intake (`PENDING`), approve (`APPROVED`), cancel (`CANCELLED`, guarded against shipped/cancelled), partial ship (`PARTIALLY_SHIPPED`).
-- Every transition is recorded in `order_status_history` (who, from → to, when) within the same transaction (Flyway `V3`).
-- Bulk actions apply approve/cancel to many orders, each in its own transaction so a partial batch does not roll back.
+- Transitions: intake (`PENDING`), approve (`APPROVED`), partial ship (`PARTIALLY_SHIPPED`),
+  ship (`SHIPPED`), cancel (`CANCELLED`, guarded against shipped/cancelled).
+- **Every transition emits a lifecycle event** via the outbox (→ Kafka `oms.orders.status`
+  + SSE): `ORDER_PLACED`, `ORDER_APPROVED`, `ORDER_PARTIALLY_SHIPPED`, `ORDER_SHIPPED`,
+  `ORDER_CANCELLED`.
+- `OrderService.markShipped(orderNumber)` advances an order to `SHIPPED` and is idempotent
+  (no-op / no duplicate event for terminal SHIPPED/CANCELLED states). It is invoked by the
+  shipping module.
+- Every transition is recorded in `order_status_history` (who, from → to, when) within the
+  same transaction (Flyway `V3`).
+- Bulk actions apply approve/cancel to many orders, each in its own transaction so a partial
+  batch does not roll back.
+
+### 5.3a Shipping ↔ order coupling
+`ShipmentService` is transactional and depends on `OrderService`:
+- `createShipment(orderNumber, carrier)` creates the shipment and calls `markShipped`, so the
+  order advances to `SHIPPED` and an `ORDER_SHIPPED` event flows out.
+- `updateStatus(id, IN_TRANSIT|DELIVERED)` also (idempotently) ensures the order is `SHIPPED`.
+This means storefront-visible status changes are driven by real fulfillment actions, not
+manual order edits alone.
 
 ### 5.4 Key endpoints
 | Method | Path | Roles |
@@ -172,7 +189,12 @@ Messages are JSON, **keyed by `orderNumber`** (guarantees per-order ordering wit
 - Pages: Login, Dashboard (KPIs + charts), Orders (search/filter, detail drawer with status timeline, bulk actions, CSV export), Inventory (CSV export), Shipping, Analytics, Payments, Notifications, Users.
 - Reusable UI: DataTable, SummaryCard, StatusBadge, ChartCard, Modal, Toast, ConfirmDialog.
 - Dark mode via CSS variables + persisted theme toggle.
-- Live SSE order-status updates on the Orders page (see §8).
+- Live SSE order-status updates on the Orders page and Dashboard (see §8).
+- Icons via `lucide-react`; responsive layout (sidebar collapses to a drawer with a hamburger
+  on screens <= 860px); skeleton loaders on list/summary pages.
+- A single app-wide SSE subscription (`live/LiveEventsContext`) feeds a topbar notification
+  bell (unread count + recent-activity dropdown) and lets pages react to live events without
+  each opening their own `EventSource`.
 
 ---
 
@@ -209,9 +231,11 @@ OMS-side implementation (build-verified; see §11 for runtime caveats):
 6. **Config** — `KAFKA_BOOTSTRAP_SERVERS` (default `localhost:9092`), consumer group
    `oms`, String key/value ser/deser, `OMS_KAFKA_ENABLED` flag.
 
-**OMS UI** — `services/orderStream.js` subscribes via `EventSource`; the Orders page
-shows a "Live" indicator, toasts each incoming status change, and refreshes the current
-(filtered) view.
+**OMS UI** — `services/orderStream.js` subscribes via `EventSource`. Both the **Orders**
+page (toasts each change + refreshes the filtered list) and the **Dashboard** (refreshes the
+summary so counts/charts stay current) subscribe to the same stream and show a "Live"
+indicator. Because every lifecycle transition emits an event (§5.3), any approve/cancel/ship
+— including those triggered by shipment creation — updates both views in real time.
 
 QuickBasket side (built in its own repo, mirrors this contract): produces `ORDER_PLACED`
 to `oms.orders.inbound`, consumes `oms.orders.status`, and pushes to its storefront UI via SSE.

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { notificationsApi } from '../services/endpoints';
 import { errorMessage } from '../services/api';
-import { PageHeader, DataTable, StatusBadge, Spinner } from '../components/ui';
+import { PageHeader, DataTable, StatusBadge, SkeletonTable } from '../components/ui';
 import { useToast } from '../components/Toast';
 
 export default function Notifications() {
@@ -69,7 +69,7 @@ export default function Notifications() {
         }
       />
       {loading ? (
-        <Spinner label="Loading outbox…" />
+        <SkeletonTable columns={7} rows={6} />
       ) : (
         <DataTable columns={columns} rows={events} rowKey={(e) => e.id} empty="No pending events." />
       )}
